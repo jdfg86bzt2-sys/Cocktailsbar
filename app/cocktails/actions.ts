@@ -1,5 +1,27 @@
 "use server";
 
+export async function toggleSignatureAction(cocktailId: string) {
+  const { createClient } = await import("@/lib/supabase/server");
+  const { redirect } = await import("next/navigation");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/connexion");
+
+  // Lit l'état actuel puis bascule
+  const { data: cocktail } = await supabase
+    .from("cocktails")
+    .select("est_signature, createur_id")
+    .eq("id", cocktailId)
+    .single();
+
+  if (!cocktail || !user || cocktail.createur_id !== user.id) return;
+
+  await supabase
+    .from("cocktails")
+    .update({ est_signature: !cocktail.est_signature })
+    .eq("id", cocktailId);
+}
+
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
