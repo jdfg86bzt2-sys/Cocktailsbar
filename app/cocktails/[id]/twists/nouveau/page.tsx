@@ -4,6 +4,7 @@ import { creerTwistAction } from "@/app/cocktails/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IngredientsForm } from "@/components/ui/ingredients-form";
+import { EtapesForm } from "@/components/ui/etapes-form";
 import { TECHNIQUES } from "@/lib/types";
 
 export default async function NouveauTwistPage({
@@ -77,8 +78,15 @@ export default async function NouveauTwistPage({
 
         <IngredientsForm />
 
+        <EtapesForm />
+
         <div>
-          <label className="mb-1 block text-sm font-medium">Photo</label>
+          <label className="mb-1 block text-sm font-medium">
+            Photo du twist <span className="text-foreground/50">(optionnel)</span>
+          </label>
+          <p className="mb-2 text-xs text-foreground/50">
+            Merci de publier une photo réelle du cocktail décrit.
+          </p>
           <input type="file" name="photo" accept="image/*" className="w-full text-sm" />
         </div>
 

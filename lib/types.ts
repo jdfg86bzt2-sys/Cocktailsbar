@@ -27,6 +27,33 @@ export const CATEGORIES_ALCOOL = [
   "Sans alcool",
 ] as const;
 
+export const TYPES_VERRE = [
+  "Old fashioned",
+  "Highball",
+  "Coup",
+  "Coupe",
+  "Flûte",
+  "Martini",
+  "Hurricane",
+  "Tiki",
+  "Shot",
+  "À bière",
+  "Autre",
+] as const;
+
+export const TAGS_GOUT = [
+  "Sucré",
+  "Amer",
+  "Acide",
+  "Frais",
+  "Fruité",
+  "Floral",
+  "Fumé",
+  "Épicé",
+  "Corsé",
+  "Léger",
+] as const;
+
 export type IngredientLigne = {
   ingredient_nom: string;
   quantite: string;
