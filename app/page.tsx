@@ -36,12 +36,15 @@ export default async function HomePage() {
       )}
 
       <div className="mt-16 grid gap-6 text-left sm:grid-cols-3">
-        <div className="rounded-lg border border-border bg-surface p-5">
+        <Link
+          href="/cocktails"
+          className="rounded-lg border border-border bg-surface p-5 hover:border-accent"
+        >
           <h2 className="font-display text-xl text-accent">Cocktails &amp; twists</h2>
           <p className="mt-2 text-sm text-foreground/70">
-            Bientôt disponible — fiches détaillées et variantes créditées.
+            Fiches détaillées, recherche par ingrédient et variantes créditées.
           </p>
-        </div>
+        </Link>
         <div className="rounded-lg border border-border bg-surface p-5">
           <h2 className="font-display text-xl text-accent">Signature certifiée</h2>
           <p className="mt-2 text-sm text-foreground/70">

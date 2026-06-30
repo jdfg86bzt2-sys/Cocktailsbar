@@ -27,6 +27,9 @@ export async function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4 text-sm font-medium">
+          <Link href="/cocktails" className="hover:text-accent">
+            Cocktails
+          </Link>
           {user ? (
             <>
               <Link

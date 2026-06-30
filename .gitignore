@@ -5,3 +5,5 @@ node_modules
 !.env.local.example
 .DS_Store
 *.tsbuildinfo
+.vercel
+.env*
