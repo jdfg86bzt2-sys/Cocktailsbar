@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Palette verrouillée : fond sombre + un seul accent rouge punchy */
+  --background: #0d0d0d;
+  --surface: #171717;
+  --foreground: #f5f1ea;
+  --accent: #e2231a;
+  --accent-foreground: #ffffff;
+  --border: #2a2a2a;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --font-display: var(--font-permanent-marker);
+  --font-sans: var(--font-barlow-condensed);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-barlow-condensed), sans-serif;
+}
+
+/* Léger grain pour l'ambiance "rue", appliqué en overlay fixe */
+.texture-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Titre "feutre/graffiti" — réservé aux moments de marque (logo, titres, badges) */
+.font-display {
+  font-family: var(--font-permanent-marker), cursive;
+  letter-spacing: 0.02em;
 }
