@@ -30,6 +30,9 @@ export async function Navbar() {
           <Link href="/cocktails" className="hover:text-accent">
             Cocktails
           </Link>
+          <Link href="/producteurs" className="hover:text-accent">
+            Producteurs
+          </Link>
           {user ? (
             <>
               <Link

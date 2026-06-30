@@ -29,11 +29,13 @@ export default async function CocktailDetailPage({
     { data: etapes },
     { data: twists },
     { count: nbRecreations },
+    { data: liensProducteurs },
   ] = await Promise.all([
     supabase.from("cocktail_ingredients").select("ingredient_nom, quantite, unite").eq("cocktail_id", id).order("ordre"),
     supabase.from("cocktail_etapes").select("texte, ordre").eq("cocktail_id", id).order("ordre"),
     supabase.from("twists").select("id, nom, description, created_at, profiles(pseudo)").eq("cocktail_origine_id", id).order("created_at", { ascending: false }),
     supabase.from("recreations").select("*", { count: "exact", head: true }).eq("cocktail_id", id),
+    supabase.from("cocktail_producteurs").select("producteurs(id, nom, type)").eq("cocktail_id", id),
   ]);
 
   // Vérifie si l'utilisateur connecté a déjà déclaré une recréation
@@ -167,6 +169,25 @@ export default async function CocktailDetailPage({
             ))}
           </ol>
         </>
+      )}
+
+      {/* Producteurs utilisés */}
+      {liensProducteurs && liensProducteurs.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold">Produits utilisés</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {liensProducteurs.map((l) => {
+              const p = l.producteurs as unknown as { id: string; nom: string; type: string } | null;
+              if (!p) return null;
+              return (
+                <Link key={p.id} href={`/producteurs/${p.id}`}
+                  className="rounded-full border border-border bg-surface px-3 py-1 text-sm hover:border-accent">
+                  {p.nom}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {/* Twists */}

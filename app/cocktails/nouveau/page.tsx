@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { IngredientsForm } from "@/components/ui/ingredients-form";
 import { EtapesForm } from "@/components/ui/etapes-form";
 import { TagsGout } from "@/components/ui/tags-gout";
+import { SelecteurProducteurs } from "@/components/ui/selecteur-producteurs";
 import { CATEGORIES_ALCOOL, TECHNIQUES, TYPES_VERRE } from "@/lib/types";
 
 export default async function NouveauCocktailPage({
@@ -20,6 +21,12 @@ export default async function NouveauCocktailPage({
 
   const { data: profile } = await supabase
     .from("profiles").select("role").eq("id", user.id).single();
+
+  // Charge la liste des producteurs existants pour la sélection
+  const { data: producteurs } = await supabase
+    .from("producteurs")
+    .select("id, nom, type, region")
+    .order("nom");
 
   if (profile?.role !== "barman") {
     return (
@@ -91,6 +98,9 @@ export default async function NouveauCocktailPage({
 
         {/* Ingrédients */}
         <IngredientsForm />
+
+        {/* Producteurs utilisés */}
+        <SelecteurProducteurs producteurs={producteurs ?? []} />
 
         {/* Étapes */}
         <EtapesForm />

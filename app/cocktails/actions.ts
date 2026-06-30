@@ -101,6 +101,13 @@ export async function creerCocktailAction(formData: FormData) {
       .insert(etapes.map((e) => ({ ...e, cocktail_id: cocktail.id })));
   }
 
+  // Lien avec les producteurs sélectionnés
+  const producteursIds = formData.getAll("producteur_id[]") as string[];
+  if (producteursIds.length > 0) {
+    await supabase.from("cocktail_producteurs")
+      .insert(producteursIds.map((pid) => ({ cocktail_id: cocktail.id, producteur_id: pid })));
+  }
+
   redirect(`/cocktails/${cocktail.id}`);
 }
 

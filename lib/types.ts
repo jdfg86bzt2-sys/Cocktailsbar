@@ -54,6 +54,15 @@ export const TAGS_GOUT = [
   "Léger",
 ] as const;
 
+export const TYPES_PRODUCTEUR: { value: string; label: string }[] = [
+  { value: "distillerie", label: "Distillerie" },
+  { value: "brasserie", label: "Brasserie" },
+  { value: "vigneron", label: "Vigneron" },
+  { value: "liquoriste", label: "Liquoriste" },
+  { value: "artisan", label: "Artisan" },
+  { value: "autre", label: "Autre" },
+];
+
 export type IngredientLigne = {
   ingredient_nom: string;
   quantite: string;
