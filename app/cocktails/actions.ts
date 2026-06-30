@@ -1,28 +1,7 @@
 "use server";
 
-export async function toggleSignatureAction(cocktailId: string) {
-  const { createClient } = await import("@/lib/supabase/server");
-  const { redirect } = await import("next/navigation");
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/connexion");
-
-  // Lit l'état actuel puis bascule
-  const { data: cocktail } = await supabase
-    .from("cocktails")
-    .select("est_signature, createur_id")
-    .eq("id", cocktailId)
-    .single();
-
-  if (!cocktail || !user || cocktail.createur_id !== user.id) return;
-
-  await supabase
-    .from("cocktails")
-    .update({ est_signature: !cocktail.est_signature })
-    .eq("id", cocktailId);
-}
-
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 async function uploaderPhoto(
@@ -149,4 +128,27 @@ export async function creerTwistAction(formData: FormData) {
   }
 
   redirect(`/cocktails/${cocktailOrigineId}`);
+}
+
+export async function toggleSignatureAction(cocktailId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/connexion");
+
+  const { data: cocktail } = await supabase
+    .from("cocktails")
+    .select("est_signature, createur_id")
+    .eq("id", cocktailId)
+    .single();
+
+  if (!cocktail || cocktail.createur_id !== user.id) return;
+
+  await supabase
+    .from("cocktails")
+    .update({ est_signature: !cocktail.est_signature })
+    .eq("id", cocktailId);
+
+  // Force le rafraîchissement de la page (sinon le badge ne se met pas à jour à l'écran)
+  revalidatePath(`/cocktails/${cocktailId}`);
+  revalidatePath(`/profil/${user.id}`);
 }
