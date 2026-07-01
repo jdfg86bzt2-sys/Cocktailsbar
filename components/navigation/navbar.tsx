@@ -47,14 +47,10 @@ export async function Navbar() {
           <Link href="/producteurs" className="hover:text-accent">Producteurs</Link>
 
           {isAdmin && (
-            <Link href="/admin" className="relative hover:text-accent">
-              {nbEnAttente > 0 ? (
-                <span className="relative inline-block">
-                  🔔
-                  <span className="absolute -right-1.5 -top-1.5 h-2 w-2 rounded-full bg-accent" />
-                </span>
-              ) : (
-                <span>🔕</span>
+            <Link href="/admin" className="relative hover:text-accent text-sm">
+              Admin
+              {nbEnAttente > 0 && (
+                <span className="absolute -right-2 -top-1.5 h-2 w-2 rounded-full bg-accent" />
               )}
             </Link>
           )}
