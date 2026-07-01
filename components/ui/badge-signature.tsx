@@ -2,8 +2,9 @@
 // Réservé aux créations signatures des barmans certifiés.
 // IMPORTANT : ce badge certifie l'attribution (premier à publier, crédité),
 // PAS une propriété légale. Une recette ne peut pas être possédée légalement.
-export function BadgeSignature({ taille = "md" }: { taille?: "sm" | "md" | "lg" }) {
+export function BadgeSignature({ taille = "md" }: { taille?: "xs" | "sm" | "md" | "lg" }) {
   const tailles = {
+    xs: "w-8 h-8 text-[6px]",
     sm: "w-14 h-14 text-[9px]",
     md: "w-20 h-20 text-[11px]",
     lg: "w-28 h-28 text-[13px]",
