@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { TECHNIQUES } from "@/lib/types";
 import { BadgeSignature } from "@/components/ui/badge-signature";
 import { BoutonRecreation } from "@/components/ui/bouton-recreation";
-import { toggleSignatureAction } from "@/app/cocktails/actions";
 
 export default async function CocktailDetailPage({
   params,
@@ -52,7 +51,6 @@ export default async function CocktailDetailPage({
 
   const createur = cocktail.profiles as unknown as { id: string; pseudo: string } | null;
   const tags = (cocktail.tags_gout ?? []) as string[];
-  const estLeCreateur = user?.id === createur?.id;
   const datePublication = new Date(cocktail.created_at).toLocaleDateString("fr-FR", {
     day: "numeric", month: "long", year: "numeric",
   });

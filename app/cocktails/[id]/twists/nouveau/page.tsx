@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { creerTwistAction } from "@/app/cocktails/actions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { IngredientsForm } from "@/components/ui/ingredients-form";
 import { EtapesForm } from "@/components/ui/etapes-form";
 import { TECHNIQUES } from "@/lib/types";
@@ -90,7 +90,7 @@ export default async function NouveauTwistPage({
           <input type="file" name="photo" accept="image/*" className="w-full text-sm" />
         </div>
 
-        <Button type="submit">Publier mon twist</Button>
+        <SubmitButton label="Publier mon twist" labelPending="Publication..." />
       </form>
     </div>
   );

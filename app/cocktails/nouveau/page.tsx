@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { creerCocktailAction } from "../actions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { IngredientsForm } from "@/components/ui/ingredients-form";
 import { EtapesForm } from "@/components/ui/etapes-form";
 import { TagsGout } from "@/components/ui/tags-gout";
@@ -118,7 +118,7 @@ export default async function NouveauCocktailPage({
           <input type="file" name="photo" accept="image/*" className="w-full text-sm" />
         </div>
 
-        <Button type="submit">Publier la fiche</Button>
+        <SubmitButton label="Publier la fiche" labelPending="Publication..." />
       </form>
     </div>
   );

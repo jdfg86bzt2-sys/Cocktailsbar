@@ -46,6 +46,13 @@ export async function creerCocktailAction(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
+  const nom = (formData.get("nom") as string).trim();
+  const { data: existant } = await supabase
+    .from("cocktails").select("id").ilike("nom", nom).maybeSingle();
+  if (existant) {
+    redirect(`/cocktails/nouveau?erreur=${encodeURIComponent(`Un cocktail nommé "${nom}" existe déjà.`)}`);
+  }
+
   const photoUrl = await uploaderPhoto(supabase, formData.get("photo") as File, "cocktails");
   const tagsGout = formData.getAll("tags_gout[]") as string[];
 
@@ -53,7 +60,7 @@ export async function creerCocktailAction(formData: FormData) {
     .from("cocktails")
     .insert({
       createur_id: user.id,
-      nom: formData.get("nom") as string,
+      nom,
       description: (formData.get("description") as string) || null,
       categorie_alcool: formData.get("categorie_alcool") as string,
       technique: formData.get("technique") as string,
