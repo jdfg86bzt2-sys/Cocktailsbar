@@ -20,11 +20,12 @@ export async function Navbar() {
     isAdmin = profile?.is_admin === true;
 
     if (isAdmin) {
-      const [{ count: c1 }, { count: c2 }] = await Promise.all([
+      const [{ count: c1 }, { count: c2 }, { count: c3 }] = await Promise.all([
         supabase.from("suggestions_cocktails").select("*", { count: "exact", head: true }).eq("statut", "en_attente"),
         supabase.from("suggestions_producteurs").select("*", { count: "exact", head: true }).eq("statut", "en_attente"),
+        supabase.from("suggestions_twists").select("*", { count: "exact", head: true }).eq("statut", "en_attente"),
       ]);
-      nbEnAttente = (c1 ?? 0) + (c2 ?? 0);
+      nbEnAttente = (c1 ?? 0) + (c2 ?? 0) + (c3 ?? 0);
     }
   }
 
