@@ -10,6 +10,11 @@ export default async function ProducteursPage({
   const { type, region } = await searchParams;
   const supabase = await createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).single()
+    : { data: null };
+
   let requete = supabase
     .from("producteurs")
     .select("id, nom, description, type, region, pays, photo_url")
@@ -20,6 +25,8 @@ export default async function ProducteursPage({
 
   const { data: producteurs } = await requete;
 
+  const estBarman = profile?.role === "barman";
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -29,12 +36,31 @@ export default async function ProducteursPage({
             Distilleries, vignerons et artisans qui font vivre nos cocktails.
           </p>
         </div>
-        <Link
-          href="/producteurs/nouveau"
-          className="rounded-md bg-accent px-4 py-2 font-semibold text-accent-foreground hover:opacity-90"
-        >
-          + Référencer un producteur
-        </Link>
+        <div className="flex gap-3">
+          {estBarman ? (
+            <>
+              <Link
+                href="/admin/suggestions"
+                className="rounded-md border border-border px-4 py-2 text-sm font-semibold hover:border-accent"
+              >
+                Suggestions
+              </Link>
+              <Link
+                href="/producteurs/nouveau"
+                className="rounded-md bg-accent px-4 py-2 font-semibold text-accent-foreground hover:opacity-90"
+              >
+                + Créer une fiche
+              </Link>
+            </>
+          ) : (
+            <Link
+              href={user ? "/producteurs/suggerer" : "/connexion"}
+              className="rounded-md bg-accent px-4 py-2 font-semibold text-accent-foreground hover:opacity-90"
+            >
+              Suggérer un producteur
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Filtres */}
@@ -65,7 +91,7 @@ export default async function ProducteursPage({
         <div className="mt-16 text-center">
           <p className="text-foreground/50">Aucun producteur référencé pour l&apos;instant.</p>
           <p className="mt-2 text-sm text-foreground/40">
-            Les barmans peuvent référencer les producteurs dont ils utilisent les produits.
+            Tu connais un artisan de qualité ? Suggère-le, on s&apos;occupe du reste.
           </p>
         </div>
       )}
