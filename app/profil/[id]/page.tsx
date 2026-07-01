@@ -11,9 +11,12 @@ export default async function ProfilPage({
   const { id } = await params;
   const supabase = await createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const estMonProfil = user?.id === id;
+
   const { data: profile } = await supabase
     .from("profiles")
-    .select("pseudo, role, bio, avatar_url, created_at")
+    .select("pseudo, role, bio, avatar_url, banner_url, created_at")
     .eq("id", id)
     .single();
 
@@ -21,120 +24,186 @@ export default async function ProfilPage({
 
   const estBarman = profile.role === "barman";
 
-  // Pour les barmans : récupère leurs créations signatures avec le nb de recréations
-  let signatures: { id: string; nom: string; nb_recreations: number; created_at: string }[] = [];
-  let nbTotalRecreations = 0;
-  if (estBarman) {
-    const { data } = await supabase
-      .from("cocktails_signatures")
-      .select("id, nom, nb_recreations, created_at")
-      .eq("createur_id", id)
-      .order("nb_recreations", { ascending: false });
-    signatures = data ?? [];
-    nbTotalRecreations = signatures.reduce((sum, s) => sum + s.nb_recreations, 0);
-  }
+  const [{ data: cocktails }, { data: twists }, { data: recreations }] = await Promise.all([
+    supabase.from("cocktails").select("id, nom, photo_url, est_signature, categorie_alcool").eq("createur_id", id).order("created_at", { ascending: false }),
+    supabase.from("twists").select("id, nom, photo_url, cocktails(nom)").eq("createur_id", id).order("created_at", { ascending: false }),
+    supabase.from("recreations").select("cocktail_id, cocktails(id, nom, photo_url)").eq("user_id", id).order("created_at", { ascending: false }),
+  ]);
 
-  // Tous les cocktails publiés par ce barman
-  let cocktails: { id: string; nom: string; est_signature: boolean }[] = [];
-  if (estBarman) {
-    const { data } = await supabase
-      .from("cocktails")
-      .select("id, nom, est_signature")
-      .eq("createur_id", id)
-      .order("created_at", { ascending: false });
-    cocktails = data ?? [];
-  }
+  const nbSignatures = cocktails?.filter((c) => c.est_signature).length ?? 0;
+
+  const { count: nbTotalRecreations } = (cocktails?.length ?? 0) > 0
+    ? await supabase.from("recreations").select("*", { count: "exact", head: true }).in("cocktail_id", cocktails!.map((c) => c.id))
+    : { count: 0 };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      {/* En-tête profil */}
-      <div className="flex items-center gap-4">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface text-2xl font-bold text-accent">
-          {profile.pseudo.charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="font-display text-3xl text-accent">{profile.pseudo}</h1>
-            {estBarman && signatures.length > 0 && (
-              <BadgeSignature taille="sm" />
-            )}
+    <div className="mx-auto max-w-3xl">
+      {/* Bannière */}
+      <div className="relative h-48 w-full bg-surface sm:h-56">
+        {profile.banner_url
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={profile.banner_url} alt="Bannière" className="h-full w-full object-cover" />
+          : <div className="h-full w-full bg-gradient-to-br from-surface to-accent/10" />
+        }
+        <div className="absolute -bottom-10 left-4 sm:left-6">
+          <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-background bg-surface text-2xl font-bold text-accent flex items-center justify-center">
+            {profile.avatar_url
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={profile.avatar_url} alt={profile.pseudo} className="h-full w-full object-cover" />
+              : profile.pseudo.charAt(0).toUpperCase()
+            }
           </div>
-          <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
-            estBarman ? "bg-accent/20 text-accent" : "bg-surface text-foreground/70"
-          }`}>
-            {estBarman ? "Barman / Créateur" : "Amateur"}
-          </span>
         </div>
+        {estMonProfil && (
+          <div className="absolute bottom-3 right-4">
+            <Link href="/profil/modifier" className="rounded-md border border-border bg-background/80 px-3 py-1.5 text-xs font-medium backdrop-blur hover:border-accent">
+              Modifier le profil
+            </Link>
+          </div>
+        )}
       </div>
 
-      {profile.bio && <p className="mt-4 text-foreground/90">{profile.bio}</p>}
+      <div className="mt-12 px-4 sm:px-6">
+        {/* Nom + badge + rôle */}
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-display text-3xl text-accent">{profile.pseudo}</h1>
+              {estBarman && nbSignatures > 0 && <BadgeSignature taille="sm" />}
+            </div>
+            <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold mt-1 ${
+              estBarman ? "bg-accent/20 text-accent" : "bg-surface text-foreground/70"
+            }`}>
+              {estBarman ? "Barman / Créateur" : "Amateur"}
+            </span>
+          </div>
+        </div>
 
-      {/* Score de réputation du barman */}
-      {estBarman && (
-        <div className="mt-8">
-          <div className="flex flex-wrap gap-6 rounded-lg border border-border bg-surface p-5">
-            <div className="text-center">
-              <p className="font-display text-4xl text-accent">{cocktails.length}</p>
-              <p className="text-xs text-foreground/60">cocktails publiés</p>
-            </div>
-            <div className="text-center">
-              <p className="font-display text-4xl text-accent">{signatures.length}</p>
-              <p className="text-xs text-foreground/60">créations signature</p>
-            </div>
-            <div className="text-center">
-              <p className="font-display text-4xl text-accent">{nbTotalRecreations}</p>
-              <p className="text-xs text-foreground/60">recréations totales</p>
+        {profile.bio && (
+          <p className="mt-3 text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{profile.bio}</p>
+        )}
+
+        {/* Stats */}
+        <div className="mt-5 flex gap-6 border-b border-border pb-5">
+          <div className="text-center">
+            <p className="font-display text-2xl text-accent">{cocktails?.length ?? 0}</p>
+            <p className="text-xs text-foreground/60">cocktails</p>
+          </div>
+          {estBarman && (
+            <>
+              <div className="text-center">
+                <p className="font-display text-2xl text-accent">{nbSignatures}</p>
+                <p className="text-xs text-foreground/60">signatures</p>
+              </div>
+              <div className="text-center">
+                <p className="font-display text-2xl text-accent">{nbTotalRecreations ?? 0}</p>
+                <p className="text-xs text-foreground/60">recréations</p>
+              </div>
+            </>
+          )}
+          <div className="text-center">
+            <p className="font-display text-2xl text-accent">{twists?.length ?? 0}</p>
+            <p className="text-xs text-foreground/60">twists</p>
+          </div>
+          <div className="text-center">
+            <p className="font-display text-2xl text-accent">{recreations?.length ?? 0}</p>
+            <p className="text-xs text-foreground/60">recréés</p>
+          </div>
+        </div>
+
+        {/* Grille cocktails */}
+        {(cocktails?.length ?? 0) > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">Cocktails</h2>
+            <div className="grid grid-cols-3 gap-1 sm:gap-2">
+              {cocktails?.map((c) => (
+                <Link key={c.id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-md bg-surface">
+                  {c.photo_url
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                    : (
+                      <div className="flex h-full w-full items-center justify-center bg-surface p-2">
+                        <span className="text-center text-xs font-medium text-foreground/70">{c.nom}</span>
+                      </div>
+                    )
+                  }
+                  {c.est_signature && (
+                    <span className="absolute right-1 top-1 rounded bg-accent px-1 py-0.5 text-[10px] font-bold text-white">SIG</span>
+                  )}
+                  <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="text-xs font-medium text-white line-clamp-2">{c.nom}</span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
+        )}
 
-          {/* Créations signatures triées par nb de recréations */}
-          {signatures.length > 0 && (
-            <div className="mt-6">
-              <h2 className="mb-3 font-display text-xl text-accent">Créations signature</h2>
-              <div className="flex flex-col gap-3">
-                {signatures.map((s) => (
-                  <Link
-                    key={s.id}
-                    href={`/cocktails/${s.id}`}
-                    className="flex items-center justify-between rounded-lg border border-border bg-surface p-4 hover:border-accent"
-                  >
-                    <div>
-                      <p className="font-semibold">{s.nom}</p>
-                      <p className="text-xs text-foreground/50">
-                        Premier publié le{" "}
-                        {new Date(s.created_at).toLocaleDateString("fr-FR")}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-display text-2xl text-accent">{s.nb_recreations}</p>
-                      <p className="text-xs text-foreground/50">recréation{s.nb_recreations !== 1 ? "s" : ""}</p>
+        {/* Twists */}
+        {(twists?.length ?? 0) > 0 && (
+          <div className="mt-8">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">Twists proposés</h2>
+            <div className="flex flex-col gap-2">
+              {twists?.map((t) => (
+                <div key={t.id} className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
+                  {t.photo_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={t.photo_url} alt={t.nom} className="h-10 w-10 rounded object-cover shrink-0" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium">{t.nom}</p>
+                    <p className="text-xs text-foreground/50">variante de {(t.cocktails as unknown as { nom: string } | null)?.nom}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recréations */}
+        {(recreations?.length ?? 0) > 0 && (
+          <div className="mt-8 mb-10">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">Cocktails recréés</h2>
+            <div className="grid grid-cols-3 gap-1 sm:gap-2">
+              {recreations?.map((r) => {
+                const c = r.cocktails as unknown as { id: string; nom: string; photo_url: string | null } | null;
+                if (!c) return null;
+                return (
+                  <Link key={r.cocktail_id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-md bg-surface">
+                    {c.photo_url
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                      : (
+                        <div className="flex h-full w-full items-center justify-center p-2">
+                          <span className="text-center text-xs text-foreground/70">{c.nom}</span>
+                        </div>
+                      )
+                    }
+                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                      <span className="text-xs font-medium text-white line-clamp-2">{c.nom}</span>
                     </div>
                   </Link>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Autres cocktails publiés */}
-          {cocktails.filter((c) => !c.est_signature).length > 0 && (
-            <div className="mt-6">
-              <h2 className="mb-3 font-display text-xl text-foreground/60">Autres cocktails</h2>
-              <div className="flex flex-col gap-2">
-                {cocktails.filter((c) => !c.est_signature).map((c) => (
-                  <Link key={c.id} href={`/cocktails/${c.id}`}
-                    className="rounded-lg border border-border p-3 hover:border-accent">
-                    {c.nom}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+        {(cocktails?.length ?? 0) === 0 && (recreations?.length ?? 0) === 0 && (
+          <div className="py-16 text-center text-foreground/40">
+            <p>Aucun cocktail pour le moment.</p>
+            {estMonProfil && (
+              <Link href="/cocktails/proposer" className="mt-2 inline-block text-sm text-accent hover:underline">
+                Proposer ton premier cocktail →
+              </Link>
+            )}
+          </div>
+        )}
 
-      <p className="mt-8 text-sm text-foreground/50">
-        Membre depuis le {new Date(profile.created_at).toLocaleDateString("fr-FR")}
-      </p>
+        <p className="pb-10 pt-4 text-xs text-foreground/30">
+          Membre depuis le {new Date(profile.created_at).toLocaleDateString("fr-FR")}
+        </p>
+      </div>
     </div>
   );
 }
