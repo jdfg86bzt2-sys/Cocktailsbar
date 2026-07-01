@@ -40,16 +40,42 @@ export default async function CocktailsPage({
 
   const { data: cocktails } = await requete;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+    : { data: null };
+  const estAdmin = profile?.is_admin === true;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-display text-4xl text-accent">Les cocktails</h1>
-        <Link
-          href="/cocktails/nouveau"
-          className="rounded-md bg-accent px-4 py-2 font-semibold text-accent-foreground hover:opacity-90"
-        >
-          + Publier un cocktail
-        </Link>
+        <div className="flex gap-3">
+          {estAdmin && (
+            <>
+              <Link
+                href="/admin/cocktails"
+                className="rounded-md border border-border px-4 py-2 text-sm font-semibold hover:border-accent"
+              >
+                Propositions
+              </Link>
+              <Link
+                href="/cocktails/nouveau"
+                className="rounded-md bg-accent px-4 py-2 font-semibold text-accent-foreground hover:opacity-90"
+              >
+                + Créer directement
+              </Link>
+            </>
+          )}
+          {!estAdmin && (
+            <Link
+              href={user ? "/cocktails/proposer" : "/connexion"}
+              className="rounded-md bg-accent px-4 py-2 font-semibold text-accent-foreground hover:opacity-90"
+            >
+              Proposer un cocktail
+            </Link>
+          )}
+        </div>
       </div>
 
       <form className="mt-6 grid gap-3 sm:grid-cols-4" method="get">

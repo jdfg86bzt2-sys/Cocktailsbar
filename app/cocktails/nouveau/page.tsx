@@ -20,7 +20,19 @@ export default async function NouveauCocktailPage({
   if (!user) redirect("/connexion");
 
   const { data: profile } = await supabase
-    .from("profiles").select("role").eq("id", user.id).single();
+    .from("profiles").select("is_admin").eq("id", user.id).single();
+
+  if (!profile?.is_admin) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <h1 className="font-display text-3xl text-accent">Accès réservé</h1>
+        <p className="mt-4 text-foreground/70">
+          Tu veux partager un cocktail ?{" "}
+          <a href="/cocktails/proposer" className="text-accent underline">Envoie une proposition</a> et on la vérifie avant publication.
+        </p>
+      </div>
+    );
+  }
 
   // Charge la liste des producteurs existants pour la sélection
   const { data: producteurs } = await supabase
@@ -28,17 +40,7 @@ export default async function NouveauCocktailPage({
     .select("id, nom, type, region")
     .order("nom");
 
-  if (profile?.role !== "barman") {
-    return (
-      <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <h1 className="font-display text-3xl text-accent">Réservé aux barmans</h1>
-        <p className="mt-4 text-foreground/70">
-          Seuls les comptes barman/créateur peuvent publier une fiche cocktail.
-          Tu peux proposer un twist sur un cocktail existant.
-        </p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
