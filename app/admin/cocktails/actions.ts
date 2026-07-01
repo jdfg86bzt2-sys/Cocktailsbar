@@ -106,11 +106,12 @@ export async function publierSuggestionCocktail(suggestionId: string) {
     .update({ statut: "accepte" })
     .eq("id", suggestionId);
 
-  // Notifier les followers du créateur
+  // Notifier uniquement les abonnés qui ont activé les notifications
   const { data: followers } = await supabase
     .from("follows")
     .select("follower_id")
-    .eq("following_id", s.utilisateur_id);
+    .eq("following_id", s.utilisateur_id)
+    .eq("notif_active", true);
 
   if (followers && followers.length > 0) {
     const { data: createur } = await supabase

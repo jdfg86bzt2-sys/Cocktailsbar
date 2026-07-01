@@ -34,9 +34,11 @@ export default async function ProfilPage({
   ]);
 
   let dejaAbonne = false;
+  let notifActive = false;
   if (user && !estMonProfil) {
-    const { data: f } = await supabase.from("follows").select("id").eq("follower_id", user.id).eq("following_id", id).maybeSingle();
+    const { data: f } = await supabase.from("follows").select("id, notif_active").eq("follower_id", user.id).eq("following_id", id).maybeSingle();
     dejaAbonne = !!f;
+    notifActive = f?.notif_active === true;
   }
 
   const nbSignatures = cocktails?.filter((c) => c.est_signature).length ?? 0;
@@ -87,7 +89,7 @@ export default async function ProfilPage({
             </span>
           </div>
           {!estMonProfil && (
-            <BoutonSuivre profilId={id} dejaAbonne={dejaAbonne} userId={user?.id ?? null} />
+            <BoutonSuivre profilId={id} dejaAbonne={dejaAbonne} notifActive={notifActive} userId={user?.id ?? null} />
           )}
         </div>
 
