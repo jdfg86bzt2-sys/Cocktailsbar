@@ -41,11 +41,13 @@ export async function Navbar() {
 
           {isAdmin && (
             <Link href="/admin" className="relative hover:text-accent">
-              Admin
-              {nbEnAttente > 0 && (
-                <span className="absolute -right-3 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
-                  {nbEnAttente}
+              {nbEnAttente > 0 ? (
+                <span className="relative inline-block">
+                  🔔
+                  <span className="absolute -right-1.5 -top-1.5 h-2 w-2 rounded-full bg-accent" />
                 </span>
+              ) : (
+                <span>🔕</span>
               )}
             </Link>
           )}
