@@ -12,8 +12,10 @@ export default async function ProducteursPage({
 
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = user
-    ? await supabase.from("profiles").select("role").eq("id", user.id).single()
+    ? await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
     : { data: null };
+
+  const estAdmin = profile?.is_admin === true;
 
   let requete = supabase
     .from("producteurs")
@@ -25,8 +27,6 @@ export default async function ProducteursPage({
 
   const { data: producteurs } = await requete;
 
-  const estBarman = profile?.role === "barman";
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -37,7 +37,7 @@ export default async function ProducteursPage({
           </p>
         </div>
         <div className="flex gap-3">
-          {estBarman ? (
+          {estAdmin && (
             <>
               <Link
                 href="/admin/suggestions"
@@ -52,7 +52,8 @@ export default async function ProducteursPage({
                 + Créer une fiche
               </Link>
             </>
-          ) : (
+          )}
+          {!estAdmin && (
             <Link
               href={user ? "/producteurs/suggerer" : "/connexion"}
               className="rounded-md bg-accent px-4 py-2 font-semibold text-accent-foreground hover:opacity-90"

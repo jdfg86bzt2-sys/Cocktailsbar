@@ -16,14 +16,14 @@ export default async function NouveauProducteurPage({
   if (!user) redirect("/connexion");
 
   const { data: profile } = await supabase
-    .from("profiles").select("role").eq("id", user.id).single();
+    .from("profiles").select("is_admin").eq("id", user.id).single();
 
-  if (profile?.role !== "barman") {
+  if (!profile?.is_admin) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <h1 className="font-display text-3xl text-accent">Réservé aux barmans</h1>
+        <h1 className="font-display text-3xl text-accent">Accès réservé</h1>
         <p className="mt-4 text-foreground/70">
-          Seuls les barmans peuvent créer une fiche producteur.
+          Seuls les administrateurs peuvent créer une fiche producteur.
         </p>
       </div>
     );

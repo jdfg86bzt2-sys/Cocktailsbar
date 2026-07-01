@@ -9,8 +9,8 @@ export default async function AdminSuggestionsPage() {
   if (!user) redirect("/connexion");
 
   const { data: profile } = await supabase
-    .from("profiles").select("role").eq("id", user.id).single();
-  if (profile?.role !== "barman") redirect("/");
+    .from("profiles").select("is_admin").eq("id", user.id).single();
+  if (!profile?.is_admin) redirect("/");
 
   const { data: suggestions } = await supabase
     .from("suggestions_producteurs")
