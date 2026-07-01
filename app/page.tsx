@@ -138,9 +138,7 @@ export default async function HomePage() {
                     <div className="p-3">
                       <p className="font-semibold text-sm">{c.nom}</p>
                       {createur && (
-                        <Link href={`/profil/${createur.id}`} onClick={(e) => e.stopPropagation()} className="text-xs text-accent hover:underline">
-                          {createur.pseudo}
-                        </Link>
+                        <span className="text-xs text-accent">{createur.pseudo}</span>
                       )}
                     </div>
                   </Link>
