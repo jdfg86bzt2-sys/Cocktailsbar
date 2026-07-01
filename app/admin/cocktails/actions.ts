@@ -106,6 +106,25 @@ export async function publierSuggestionCocktail(suggestionId: string) {
     .update({ statut: "accepte" })
     .eq("id", suggestionId);
 
+  // Notifier les followers du créateur
+  const { data: followers } = await supabase
+    .from("follows")
+    .select("follower_id")
+    .eq("following_id", s.utilisateur_id);
+
+  if (followers && followers.length > 0) {
+    const { data: createur } = await supabase
+      .from("profiles").select("pseudo").eq("id", s.utilisateur_id).single();
+    await supabase.from("notifications").insert(
+      followers.map((f) => ({
+        destinataire_id: f.follower_id,
+        type: "nouveau_cocktail",
+        message: `${createur?.pseudo ?? "Un barman"} vient de publier un nouveau cocktail : ${s.nom}`,
+        lien: `/cocktails/${cocktail.id}`,
+      }))
+    );
+  }
+
   revalidatePath("/admin/cocktails");
   revalidatePath("/cocktails");
 }

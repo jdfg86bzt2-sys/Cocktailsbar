@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { BadgeSignature } from "@/components/ui/badge-signature";
+import { BoutonSuivre } from "@/components/ui/bouton-suivre";
 
 export default async function ProfilPage({
   params,
@@ -24,11 +25,19 @@ export default async function ProfilPage({
 
   const estBarman = profile.role === "barman";
 
-  const [{ data: cocktails }, { data: twists }, { data: recreations }] = await Promise.all([
+  const [{ data: cocktails }, { data: twists }, { data: recreations }, { count: nbFollowers }, { count: nbFollowing }] = await Promise.all([
     supabase.from("cocktails").select("id, nom, photo_url, est_signature, categorie_alcool").eq("createur_id", id).order("created_at", { ascending: false }),
     supabase.from("twists").select("id, nom, photo_url, cocktails(nom)").eq("createur_id", id).order("created_at", { ascending: false }),
     supabase.from("recreations").select("cocktail_id, cocktails(id, nom, photo_url)").eq("user_id", id).order("created_at", { ascending: false }),
+    supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", id),
+    supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", id),
   ]);
+
+  let dejaAbonne = false;
+  if (user && !estMonProfil) {
+    const { data: f } = await supabase.from("follows").select("id").eq("follower_id", user.id).eq("following_id", id).maybeSingle();
+    dejaAbonne = !!f;
+  }
 
   const nbSignatures = cocktails?.filter((c) => c.est_signature).length ?? 0;
 
@@ -64,8 +73,8 @@ export default async function ProfilPage({
       </div>
 
       <div className="mt-12 px-4 sm:px-6">
-        {/* Nom + badge + rôle */}
-        <div className="flex items-start justify-between">
+        {/* Nom + badge + rôle + bouton suivre */}
+        <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-display text-3xl text-accent">{profile.pseudo}</h1>
@@ -77,11 +86,20 @@ export default async function ProfilPage({
               {estBarman ? "Barman / Créateur" : "Amateur"}
             </span>
           </div>
+          {!estMonProfil && (
+            <BoutonSuivre profilId={id} dejaAbonne={dejaAbonne} userId={user?.id ?? null} />
+          )}
         </div>
 
         {profile.bio && (
           <p className="mt-3 text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{profile.bio}</p>
         )}
+
+        {/* Followers */}
+        <div className="mt-3 flex gap-4 text-sm">
+          <span><span className="font-semibold text-foreground">{nbFollowers ?? 0}</span> <span className="text-foreground/50">abonnés</span></span>
+          <span><span className="font-semibold text-foreground">{nbFollowing ?? 0}</span> <span className="text-foreground/50">abonnements</span></span>
+        </div>
 
         {/* Stats */}
         <div className="mt-5 flex gap-6 border-b border-border pb-5">

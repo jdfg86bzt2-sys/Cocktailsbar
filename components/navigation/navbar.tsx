@@ -9,6 +9,7 @@ export async function Navbar() {
   let pseudo: string | null = null;
   let isAdmin = false;
   let nbEnAttente = 0;
+  let nbNotifs = 0;
 
   if (user) {
     const { data: profile } = await supabase
@@ -18,6 +19,11 @@ export async function Navbar() {
       .single();
     pseudo = profile?.pseudo ?? null;
     isAdmin = profile?.is_admin === true;
+
+    const { count: cNotifs } = await supabase
+      .from("notifications").select("*", { count: "exact", head: true })
+      .eq("destinataire_id", user.id).eq("lu", false);
+    nbNotifs = cNotifs ?? 0;
 
     if (isAdmin) {
       const [{ count: c1 }, { count: c2 }, { count: c3 }] = await Promise.all([
@@ -55,6 +61,14 @@ export async function Navbar() {
 
           {user ? (
             <>
+              <Link href="/notifications" className="relative hover:text-accent">
+                <span>🔔</span>
+                {nbNotifs > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
+                    {nbNotifs > 9 ? "9+" : nbNotifs}
+                  </span>
+                )}
+              </Link>
               <Link href={`/profil/${user.id}`} className="hidden sm:inline hover:text-accent">
                 {pseudo}
               </Link>
