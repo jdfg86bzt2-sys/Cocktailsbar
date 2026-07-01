@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { envoyerNotifNouveauCocktail } from "@/lib/email";
 
 async function verifierAdmin() {
   const supabase = await createClient();
@@ -116,13 +117,42 @@ export async function publierSuggestionCocktail(suggestionId: string) {
   if (followers && followers.length > 0) {
     const { data: createur } = await supabase
       .from("profiles").select("pseudo").eq("id", s.utilisateur_id).single();
+    const createurPseudo = createur?.pseudo ?? "Un barman";
+
+    // Notifs in-app
     await supabase.from("notifications").insert(
       followers.map((f) => ({
         destinataire_id: f.follower_id,
         type: "nouveau_cocktail",
-        message: `${createur?.pseudo ?? "Un barman"} vient de publier un nouveau cocktail : ${s.nom}`,
+        message: `${createurPseudo} vient de publier un nouveau cocktail : ${s.nom}`,
         lien: `/cocktails/${cocktail.id}`,
       }))
+    );
+
+    // Emails — récupérer les adresses des abonnés
+    const followerIds = followers.map((f) => f.follower_id);
+    const { data: usersData } = await supabase.auth.admin.listUsers();
+    const emailsMap = Object.fromEntries(
+      (usersData?.users ?? [])
+        .filter((u) => followerIds.includes(u.id))
+        .map((u) => [u.id, u.email ?? ""])
+    );
+    const { data: profilesAbonnes } = await supabase
+      .from("profiles").select("id, pseudo").in("id", followerIds);
+    const mapPseudos = Object.fromEntries((profilesAbonnes ?? []).map((p) => [p.id, p.pseudo]));
+
+    await Promise.allSettled(
+      followers
+        .filter((f) => emailsMap[f.follower_id])
+        .map((f) =>
+          envoyerNotifNouveauCocktail({
+            destinataireEmail: emailsMap[f.follower_id],
+            destinatairePseudo: mapPseudos[f.follower_id] ?? "ami",
+            createurPseudo,
+            cocktailNom: s.nom,
+            cocktailId: cocktail.id,
+          })
+        )
     );
   }
 
