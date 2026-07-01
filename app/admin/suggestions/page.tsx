@@ -14,8 +14,14 @@ export default async function AdminSuggestionsPage() {
 
   const { data: suggestions } = await supabase
     .from("suggestions_producteurs")
-    .select("*, profiles(pseudo)")
+    .select("*")
     .order("created_at", { ascending: false });
+
+  const userIds = [...new Set((suggestions ?? []).map((s) => s.utilisateur_id))];
+  const { data: profilesData } = userIds.length > 0
+    ? await supabase.from("profiles").select("id, pseudo").in("id", userIds)
+    : { data: [] };
+  const mapPseudos = Object.fromEntries((profilesData ?? []).map((p) => [p.id, p.pseudo]));
 
   const enAttente = suggestions?.filter((s) => s.statut === "en_attente") ?? [];
   const traitees = suggestions?.filter((s) => s.statut !== "en_attente") ?? [];
@@ -43,7 +49,7 @@ export default async function AdminSuggestionsPage() {
                 <div>
                   <p className="text-lg font-semibold">{s.nom}</p>
                   <p className="text-xs text-foreground/50">
-                    par {(s.profiles as { pseudo: string } | null)?.pseudo ?? "inconnu"} —{" "}
+                    par {mapPseudos[s.utilisateur_id] ?? "inconnu"} —{" "}
                     {new Date(s.created_at).toLocaleDateString("fr-FR")}
                   </p>
                 </div>

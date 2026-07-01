@@ -25,8 +25,15 @@ export default async function AdminCocktailsPage() {
 
   const { data: suggestions } = await supabase
     .from("suggestions_cocktails")
-    .select("*, profiles(pseudo)")
+    .select("*")
     .order("created_at", { ascending: false });
+
+  // Récupérer les pseudos séparément
+  const userIds = [...new Set((suggestions ?? []).map((s) => s.utilisateur_id))];
+  const { data: profilesData } = userIds.length > 0
+    ? await supabase.from("profiles").select("id, pseudo").in("id", userIds)
+    : { data: [] };
+  const mapPseudos = Object.fromEntries((profilesData ?? []).map((p) => [p.id, p.pseudo]));
 
   // Récupérer les noms des producteurs pour affichage
   const { data: producteurs } = await supabase.from("producteurs").select("id, nom");
@@ -71,7 +78,7 @@ export default async function AdminCocktailsPage() {
                       )}
                     </div>
                     <p className="text-xs text-foreground/50">
-                      par {(s.profiles as { pseudo: string } | null)?.pseudo ?? "inconnu"} —{" "}
+                      par {mapPseudos[s.utilisateur_id] ?? "inconnu"} —{" "}
                       {new Date(s.created_at).toLocaleDateString("fr-FR")}
                     </p>
                   </div>
