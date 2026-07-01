@@ -5,7 +5,7 @@ import { IngredientsForm } from "@/components/ui/ingredients-form";
 import { EtapesForm } from "@/components/ui/etapes-form";
 import { TagsGout } from "@/components/ui/tags-gout";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { TECHNIQUES, CATEGORIES_ALCOOL, TYPES_VERRE } from "@/lib/types";
 
 export default async function ProposerCocktailPage({
@@ -134,7 +134,7 @@ export default async function ProposerCocktailPage({
             </label>
           </div>
 
-          <Button type="submit">Envoyer la proposition</Button>
+          <SubmitButton label="Envoyer la proposition" labelPending="Envoi..." />
         </form>
       )}
     </div>

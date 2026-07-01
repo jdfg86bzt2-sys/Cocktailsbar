@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { creerProducteurAction } from "../actions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { TYPES_PRODUCTEUR } from "@/lib/types";
 
 export default async function NouveauProducteurPage({
@@ -92,7 +92,7 @@ export default async function NouveauProducteurPage({
           <input type="file" name="photo" accept="image/*" className="w-full text-sm" />
         </div>
 
-        <Button type="submit">Publier la fiche</Button>
+        <SubmitButton label="Publier la fiche" labelPending="Publication..." />
       </form>
     </div>
   );

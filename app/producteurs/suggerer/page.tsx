@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { suggererProducteurAction } from "./actions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export default async function SuggererProducteurPage({
   searchParams,
@@ -58,7 +58,7 @@ export default async function SuggererProducteurPage({
             />
           </div>
 
-          <Button type="submit">Envoyer la suggestion</Button>
+          <SubmitButton label="Envoyer la suggestion" labelPending="Envoi..." />
         </form>
       )}
     </div>

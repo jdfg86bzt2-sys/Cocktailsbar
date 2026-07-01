@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { inscrireAction } from "../actions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export default async function InscriptionPage({
   searchParams,
@@ -50,7 +50,7 @@ export default async function InscriptionPage({
           </div>
         </fieldset>
 
-        <Button type="submit">Créer mon compte</Button>
+        <SubmitButton label="Créer mon compte" labelPending="Création..." />
       </form>
 
       <p className="mt-6 text-sm text-foreground/70">

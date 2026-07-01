@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { connexionAction } from "../actions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export default async function ConnexionPage({
   searchParams,
@@ -31,7 +31,7 @@ export default async function ConnexionPage({
           <Input type="password" name="password" required />
         </div>
 
-        <Button type="submit">Se connecter</Button>
+        <SubmitButton label="Se connecter" labelPending="Connexion..." />
       </form>
 
       <p className="mt-6 text-sm text-foreground/70">
