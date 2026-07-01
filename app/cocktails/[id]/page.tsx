@@ -121,19 +121,6 @@ export default async function CocktailDetailPage({
         />
       </div>
 
-      {/* Bouton "marquer comme signature" — réservé au créateur barman */}
-      {estLeCreateur && (
-        <form action={toggleSignatureAction.bind(null, id)} className="mt-3">
-          <button
-            type="submit"
-            className={`text-sm underline ${cocktail.est_signature ? "text-accent" : "text-foreground/50 hover:text-accent"}`}
-          >
-            {cocktail.est_signature
-              ? "✓ Marqué comme création signature — retirer"
-              : "Marquer comme ma création signature"}
-          </button>
-        </form>
-      )}
 
       {/* L'inspiration */}
       {cocktail.description && (
