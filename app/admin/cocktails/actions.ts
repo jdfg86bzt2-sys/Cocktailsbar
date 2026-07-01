@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { envoyerNotifNouveauCocktail } from "@/lib/email";
+import { envoyerConfirmationSuggestion } from "@/lib/email";
 
 async function verifierAdmin() {
   const supabase = await createClient();
@@ -15,34 +15,32 @@ async function verifierAdmin() {
   return { supabase, userId: user.id };
 }
 
+async function getEmailEtPseudo(supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>, userId: string) {
+  const [{ data: usersData }, { data: profile }] = await Promise.all([
+    supabase.auth.admin.listUsers(),
+    supabase.from("profiles").select("pseudo").eq("id", userId).single(),
+  ]);
+  const email = usersData?.users.find((u) => u.id === userId)?.email ?? "";
+  const pseudo = profile?.pseudo ?? "Utilisateur";
+  return { email, pseudo };
+}
+
 export async function publierSuggestionCocktail(suggestionId: string) {
-  const { supabase, userId } = await verifierAdmin();
+  const { supabase } = await verifierAdmin();
 
   const { data: s } = await supabase
-    .from("suggestions_cocktails")
-    .select("*")
-    .eq("id", suggestionId)
-    .single();
-
+    .from("suggestions_cocktails").select("*").eq("id", suggestionId).single();
   if (!s) return;
 
-  // Vérifier doublon avant publication
+  // Vérifier doublon
   const { data: existant } = await supabase
-    .from("cocktails")
-    .select("id")
-    .ilike("nom", s.nom)
-    .maybeSingle();
-
+    .from("cocktails").select("id").ilike("nom", s.nom).maybeSingle();
   if (existant) {
-    await supabase
-      .from("suggestions_cocktails")
-      .update({ statut: "refuse" })
-      .eq("id", suggestionId);
+    await supabase.from("suggestions_cocktails").update({ statut: "refuse" }).eq("id", suggestionId);
     revalidatePath("/admin/cocktails");
     return;
   }
 
-  // Créer le cocktail
   const { data: cocktail, error } = await supabase
     .from("cocktails")
     .insert({
@@ -61,13 +59,8 @@ export async function publierSuggestionCocktail(suggestionId: string) {
 
   if (error || !cocktail) return;
 
-  // Ingrédients
   const ingredients = (s.ingredients as Array<{
-    ingredient_nom: string;
-    quantite: number | null;
-    unite: string | null;
-    producteur_id: string | null;
-    ordre: number;
+    ingredient_nom: string; quantite: number | null; unite: string | null; producteur_id: string | null; ordre: number;
   }>).filter((i) => i.ingredient_nom?.trim());
 
   if (ingredients.length > 0) {
@@ -80,11 +73,7 @@ export async function publierSuggestionCocktail(suggestionId: string) {
         ordre: i.ordre,
       }))
     );
-
-    // Lier les producteurs mentionnés dans les ingrédients
-    const producteursIds = [...new Set(
-      ingredients.map((i) => i.producteur_id).filter(Boolean) as string[]
-    )];
+    const producteursIds = [...new Set(ingredients.map((i) => i.producteur_id).filter(Boolean) as string[])];
     if (producteursIds.length > 0) {
       await supabase.from("cocktail_producteurs").insert(
         producteursIds.map((pid) => ({ cocktail_id: cocktail.id, producteur_id: pid }))
@@ -92,68 +81,26 @@ export async function publierSuggestionCocktail(suggestionId: string) {
     }
   }
 
-  // Étapes
-  const etapes = (s.etapes as Array<{ texte: string; ordre: number }>)
-    .filter((e) => e.texte?.trim());
+  const etapes = (s.etapes as Array<{ texte: string; ordre: number }>).filter((e) => e.texte?.trim());
   if (etapes.length > 0) {
     await supabase.from("cocktail_etapes").insert(
       etapes.map((e) => ({ cocktail_id: cocktail.id, texte: e.texte, ordre: e.ordre }))
     );
   }
 
-  // Marquer la suggestion comme acceptée
-  await supabase
-    .from("suggestions_cocktails")
-    .update({ statut: "accepte" })
-    .eq("id", suggestionId);
+  await supabase.from("suggestions_cocktails").update({ statut: "accepte" }).eq("id", suggestionId);
 
-  // Notifier uniquement les abonnés qui ont activé les notifications
-  const { data: followers } = await supabase
-    .from("follows")
-    .select("follower_id")
-    .eq("following_id", s.utilisateur_id)
-    .eq("notif_active", true);
-
-  if (followers && followers.length > 0) {
-    const { data: createur } = await supabase
-      .from("profiles").select("pseudo").eq("id", s.utilisateur_id).single();
-    const createurPseudo = createur?.pseudo ?? "Un barman";
-
-    // Notifs in-app
-    await supabase.from("notifications").insert(
-      followers.map((f) => ({
-        destinataire_id: f.follower_id,
-        type: "nouveau_cocktail",
-        message: `${createurPseudo} vient de publier un nouveau cocktail : ${s.nom}`,
-        lien: `/cocktails/${cocktail.id}`,
-      }))
-    );
-
-    // Emails — récupérer les adresses des abonnés
-    const followerIds = followers.map((f) => f.follower_id);
-    const { data: usersData } = await supabase.auth.admin.listUsers();
-    const emailsMap = Object.fromEntries(
-      (usersData?.users ?? [])
-        .filter((u) => followerIds.includes(u.id))
-        .map((u) => [u.id, u.email ?? ""])
-    );
-    const { data: profilesAbonnes } = await supabase
-      .from("profiles").select("id, pseudo").in("id", followerIds);
-    const mapPseudos = Object.fromEntries((profilesAbonnes ?? []).map((p) => [p.id, p.pseudo]));
-
-    await Promise.allSettled(
-      followers
-        .filter((f) => emailsMap[f.follower_id])
-        .map((f) =>
-          envoyerNotifNouveauCocktail({
-            destinataireEmail: emailsMap[f.follower_id],
-            destinatairePseudo: mapPseudos[f.follower_id] ?? "ami",
-            createurPseudo,
-            cocktailNom: s.nom,
-            cocktailId: cocktail.id,
-          })
-        )
-    );
+  // Email de confirmation à l'auteur
+  const { email, pseudo } = await getEmailEtPseudo(supabase, s.utilisateur_id);
+  if (email) {
+    await envoyerConfirmationSuggestion({
+      destinataireEmail: email,
+      destinatairePseudo: pseudo,
+      type: "cocktail",
+      nom: s.nom,
+      accepte: true,
+      lien: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://cocktailsbar.vercel.app"}/cocktails/${cocktail.id}`,
+    }).catch(() => {});
   }
 
   revalidatePath("/admin/cocktails");
@@ -162,9 +109,24 @@ export async function publierSuggestionCocktail(suggestionId: string) {
 
 export async function refuserSuggestionCocktail(suggestionId: string) {
   const { supabase } = await verifierAdmin();
-  await supabase
-    .from("suggestions_cocktails")
-    .update({ statut: "refuse" })
-    .eq("id", suggestionId);
+
+  const { data: s } = await supabase
+    .from("suggestions_cocktails").select("utilisateur_id, nom").eq("id", suggestionId).single();
+
+  await supabase.from("suggestions_cocktails").update({ statut: "refuse" }).eq("id", suggestionId);
+
+  if (s) {
+    const { email, pseudo } = await getEmailEtPseudo(supabase, s.utilisateur_id);
+    if (email) {
+      await envoyerConfirmationSuggestion({
+        destinataireEmail: email,
+        destinatairePseudo: pseudo,
+        type: "cocktail",
+        nom: s.nom,
+        accepte: false,
+      }).catch(() => {});
+    }
+  }
+
   revalidatePath("/admin/cocktails");
 }
