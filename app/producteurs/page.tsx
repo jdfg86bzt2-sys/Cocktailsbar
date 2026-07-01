@@ -2,12 +2,31 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { TYPES_PRODUCTEUR } from "@/lib/types";
 
+const DRAPEAUX: Record<string, string> = {
+  France: "🇫🇷", "États-Unis": "🇺🇸", "USA": "🇺🇸", Mexique: "🇲🇽",
+  Jamaïque: "🇯🇲", Cuba: "🇨🇺", Écosse: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", Irlande: "🇮🇪",
+  Japon: "🇯🇵", Italie: "🇮🇹", Espagne: "🇪🇸", "Royaume-Uni": "🇬🇧",
+  Allemagne: "🇩🇪", Belgique: "🇧🇪", "Pays-Bas": "🇳🇱", Portugal: "🇵🇹",
+  Brésil: "🇧🇷", Argentine: "🇦🇷", Pérou: "🇵🇪", Chili: "🇨🇱",
+  Australie: "🇦🇺", "Nouvelle-Zélande": "🇳🇿", "Afrique du Sud": "🇿🇦",
+  "République Dominicaine": "🇩🇴", Barbade: "🇧🇧", Haïti: "🇭🇹",
+  Martinique: "🇫🇷", Guadeloupe: "🇫🇷", Réunion: "🇫🇷",
+  Canada: "🇨🇦", Suède: "🇸🇪", Danemark: "🇩🇰", Finlande: "🇫🇮",
+  Norvège: "🇳🇴", Suisse: "🇨🇭", Autriche: "🇦🇹", Grèce: "🇬🇷",
+  Turquie: "🇹🇷", Maroc: "🇲🇦", Inde: "🇮🇳", Chine: "🇨🇳",
+  Taiwan: "🇹🇼", Thaïlande: "🇹🇭", Vietnam: "🇻🇳",
+};
+
+function drapeau(pays: string) {
+  return DRAPEAUX[pays] ?? "🌍";
+}
+
 export default async function ProducteursPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; region?: string; q?: string }>;
+  searchParams: Promise<{ type?: string; pays?: string; q?: string }>;
 }) {
-  const { type, region, q } = await searchParams;
+  const { type, pays, q } = await searchParams;
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -18,21 +37,36 @@ export default async function ProducteursPage({
 
   let requete = supabase
     .from("producteurs")
-    .select("id, nom, description, type, type_produit, region, pays, photo_url")
+    .select("id, nom, description, type, type_produit, region, ville, pays, photo_url")
+    .order("pays", { ascending: true })
     .order("nom", { ascending: true });
 
   if (type) requete = requete.eq("type", type);
-  if (region) requete = requete.ilike("region", `%${region}%`);
+  if (pays) requete = requete.eq("pays", pays);
   if (q) requete = requete.ilike("nom", `%${q}%`);
 
   const { data: producteurs } = await requete;
 
-  // Régions disponibles pour les chips
-  const { data: tousLesProducteurs } = await supabase
-    .from("producteurs").select("region").not("region", "is", null);
-  const regions = [...new Set((tousLesProducteurs ?? []).map((p) => p.region).filter(Boolean))].sort() as string[];
+  // Pays disponibles
+  const { data: tousProducteurs } = await supabase
+    .from("producteurs").select("pays").not("pays", "is", null);
+  const paysDisponibles = [...new Set((tousProducteurs ?? []).map((p) => p.pays).filter(Boolean))].sort() as string[];
 
-  const filtreActif = !!(type || region || q);
+  // Grouper par pays
+  const grouped: Record<string, typeof producteurs> = {};
+  for (const p of producteurs ?? []) {
+    const k = p.pays ?? "Autre";
+    if (!grouped[k]) grouped[k] = [];
+    grouped[k]!.push(p);
+  }
+  const paysTries = Object.keys(grouped).sort((a, b) => {
+    if (a === "France") return -1;
+    if (b === "France") return 1;
+    return a.localeCompare(b);
+  });
+
+  const filtreActif = !!(type || pays || q);
+  const afficherGroupes = !filtreActif || !!pays;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -41,7 +75,8 @@ export default async function ProducteursPage({
         <div>
           <h1 className="font-display text-4xl text-accent">Producteurs</h1>
           <p className="mt-1 text-sm text-foreground/50">
-            Distilleries, vignerons et artisans qui font vivre nos cocktails · {producteurs?.length ?? 0} référencé{(producteurs?.length ?? 0) !== 1 ? "s" : ""}
+            Distilleries, vignerons et artisans du monde entier · {producteurs?.length ?? 0} référencé{(producteurs?.length ?? 0) !== 1 ? "s" : ""}
+            {paysDisponibles.length > 0 && <> dans {paysDisponibles.length} pays</>}
           </p>
         </div>
         <div className="flex gap-2">
@@ -60,111 +95,143 @@ export default async function ProducteursPage({
       </div>
 
       {/* Recherche */}
-      <form className="mt-6 space-y-3" method="get">
+      <form className="mt-6" method="get">
         <div className="flex gap-2">
           <input
             name="q"
             defaultValue={q}
             placeholder="Rechercher un producteur…"
-            className="flex-1 rounded-md border border-border bg-surface px-4 py-2.5 placeholder:text-foreground/40 focus:border-accent focus:outline-none"
+            className="flex-1 rounded-full border border-border bg-surface px-5 py-2.5 placeholder:text-foreground/40 focus:border-accent focus:outline-none"
           />
-          <button type="submit" className="rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+          <button type="submit" className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
             Chercher
           </button>
         </div>
+      </form>
 
+      {/* Filtres */}
+      <div className="mt-4 space-y-3">
         {/* Types */}
         <div className="flex flex-wrap gap-2">
-          <a href={buildUrl({ type, region, q }, { type: undefined })}
+          <a href={buildUrl({ type, pays, q }, { type: undefined })}
             className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${!type ? "border-accent bg-accent text-white" : "border-border hover:border-accent"}`}>
-            Tous
+            Tous les types
           </a>
           {TYPES_PRODUCTEUR.map((t) => (
-            <a key={t.value} href={buildUrl({ type, region, q }, { type: type === t.value ? undefined : t.value })}
+            <a key={t.value} href={buildUrl({ type, pays, q }, { type: type === t.value ? undefined : t.value })}
               className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${type === t.value ? "border-accent bg-accent text-white" : "border-border hover:border-accent"}`}>
               {t.label}
             </a>
           ))}
         </div>
 
-        {/* Régions */}
-        {regions.length > 0 && (
+        {/* Pays */}
+        {paysDisponibles.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            <span className="self-center text-xs text-foreground/40">Région :</span>
-            {regions.map((r) => (
-              <a key={r} href={buildUrl({ type, region, q }, { region: region === r ? undefined : r })}
-                className={`rounded-full border px-3 py-1 text-xs transition-colors ${region === r ? "border-accent bg-accent/20 text-accent" : "border-border text-foreground/60 hover:border-accent"}`}>
-                📍 {r}
+            <a href={buildUrl({ type, pays, q }, { pays: undefined })}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${!pays ? "border-accent bg-accent text-white" : "border-border hover:border-accent"}`}>
+              🌍 Tous les pays
+            </a>
+            {paysDisponibles.map((p) => (
+              <a key={p} href={buildUrl({ type, pays, q }, { pays: pays === p ? undefined : p })}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${pays === p ? "border-accent bg-accent text-white" : "border-border hover:border-accent"}`}>
+                {drapeau(p)} {p}
               </a>
             ))}
           </div>
         )}
 
         {filtreActif && (
-          <a href="/producteurs" className="inline-block text-xs text-foreground/40 hover:text-accent">
-            ✕ Effacer les filtres
-          </a>
+          <a href="/producteurs" className="inline-block text-xs text-foreground/40 hover:text-accent">✕ Effacer les filtres</a>
         )}
-      </form>
+      </div>
 
-      {/* Résultats */}
+      {/* Résultats vides */}
       {(!producteurs || producteurs.length === 0) && (
         <div className="mt-20 text-center">
+          <p className="text-2xl mb-3">🌍</p>
           <p className="text-foreground/50">Aucun producteur trouvé.</p>
           {filtreActif
             ? <a href="/producteurs" className="mt-2 inline-block text-sm text-accent hover:underline">Voir tous →</a>
-            : <p className="mt-2 text-sm text-foreground/40">Suggère le premier !</p>
+            : <p className="mt-2 text-sm text-foreground/40">Sois le premier à en suggérer un !</p>
           }
         </div>
       )}
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {producteurs?.map((p) => {
-          const typeLabel = TYPES_PRODUCTEUR.find((t) => t.value === p.type)?.label;
-          return (
-            <Link key={p.id} href={`/producteurs/${p.id}`}
-              className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface hover:border-accent transition-colors">
-              {/* Photo ou placeholder avec initiale */}
-              <div className="relative h-40 w-full overflow-hidden bg-accent/5">
-                {p.photo_url
-                  // eslint-disable-next-line @next/next/no-img-element
-                  ? <img src={p.photo_url} alt={p.nom} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                  : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <span className="font-display text-6xl font-bold text-accent/20">{p.nom.charAt(0)}</span>
-                    </div>
-                  )
-                }
-                {typeLabel && (
-                  <span className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
-                    {typeLabel}
-                  </span>
-                )}
+      {/* Grille groupée par pays */}
+      {(producteurs?.length ?? 0) > 0 && (
+        <div className="mt-10 space-y-10">
+          {afficherGroupes
+            ? paysTries.map((paysNom) => (
+              <section key={paysNom}>
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="text-2xl">{drapeau(paysNom)}</span>
+                  <h2 className="font-display text-xl">{paysNom}</h2>
+                  <span className="text-xs text-foreground/40">{grouped[paysNom]?.length} producteur{(grouped[paysNom]?.length ?? 0) !== 1 ? "s" : ""}</span>
+                  <div className="flex-1 border-b border-border" />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {grouped[paysNom]?.map((p) => <CarteProducteur key={p.id} p={p} />)}
+                </div>
+              </section>
+            ))
+            : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {producteurs?.map((p) => <CarteProducteur key={p.id} p={p} />)}
               </div>
-
-              <div className="flex flex-1 flex-col p-4">
-                <h2 className="font-semibold">{p.nom}</h2>
-                {(p.region || p.pays) && (
-                  <p className="mt-0.5 text-xs text-foreground/50">
-                    📍 {[p.region, p.pays && p.pays !== "France" ? p.pays : null].filter(Boolean).join(", ")}
-                  </p>
-                )}
-                {p.type_produit && (
-                  <p className="mt-1 text-xs text-accent">{p.type_produit}</p>
-                )}
-                {p.description && (
-                  <p className="mt-2 line-clamp-2 text-sm text-foreground/60">{p.description}</p>
-                )}
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+            )
+          }
+        </div>
+      )}
     </div>
   );
 }
 
-function buildUrl(current: { type?: string; region?: string; q?: string }, overrides: Partial<typeof current>) {
+function CarteProducteur({ p }: {
+  p: {
+    id: string; nom: string; description: string | null; type: string;
+    type_produit: string | null; region: string | null; ville: string | null;
+    pays: string | null; photo_url: string | null;
+  }
+}) {
+  const typeLabel = TYPES_PRODUCTEUR.find((t) => t.value === p.type)?.label;
+  const localisation = [p.ville, p.region].filter(Boolean).join(", ");
+
+  return (
+    <Link href={`/producteurs/${p.id}`}
+      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface hover:border-accent transition-colors">
+      <div className="relative h-44 w-full overflow-hidden bg-accent/5">
+        {p.photo_url
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={p.photo_url} alt={p.nom} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1">
+              <span className="font-display text-5xl font-bold text-accent/20">{p.nom.charAt(0)}</span>
+            </div>
+          )
+        }
+        {typeLabel && (
+          <span className="absolute right-2 top-2 rounded-full bg-black/60 px-2.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+            {typeLabel}
+          </span>
+        )}
+        {p.pays && (
+          <span className="absolute left-2 top-2 text-xl" title={p.pays}>
+            {DRAPEAUX[p.pays] ?? "🌍"}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col p-4">
+        <h2 className="font-semibold leading-tight">{p.nom}</h2>
+        {localisation && <p className="mt-0.5 text-xs text-foreground/50">📍 {localisation}</p>}
+        {p.type_produit && <p className="mt-1 text-xs text-accent">{p.type_produit}</p>}
+        {p.description && <p className="mt-2 line-clamp-2 text-sm text-foreground/60">{p.description}</p>}
+      </div>
+    </Link>
+  );
+}
+
+function buildUrl(current: { type?: string; pays?: string; q?: string }, overrides: Partial<typeof current>) {
   const next = { ...current, ...overrides };
   const params = new URLSearchParams();
   Object.entries(next).forEach(([k, v]) => { if (v) params.set(k, v); });

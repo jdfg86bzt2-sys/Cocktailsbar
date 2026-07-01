@@ -61,13 +61,24 @@ export default async function NouveauProducteurPage({
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">Région</label>
-            <Input name="region" placeholder="Ex: Bretagne, Cognac..." />
+            <Input name="region" placeholder="Ex: Bretagne, Cognac, Okinawa..." />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Ville</label>
+            <Input name="ville" placeholder="Ex: Lyon, Kyoto, Havane..." />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Pays</label>
+            <Input name="pays" defaultValue="France" placeholder="Ex: France, Japon, Cuba..." />
           </div>
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Pays</label>
-          <Input name="pays" defaultValue="France" />
+          <label className="mb-1 block text-sm font-medium">Produit phare <span className="text-foreground/50">(optionnel)</span></label>
+          <Input name="type_produit" placeholder="Ex: Rhum agricole, Gin botanique, Whisky tourbé..." />
         </div>
 
         <div>

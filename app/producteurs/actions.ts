@@ -43,7 +43,9 @@ export async function creerProducteurAction(formData: FormData) {
       description: (formData.get("description") as string) || null,
       type: formData.get("type") as string,
       region: (formData.get("region") as string) || null,
+      ville: (formData.get("ville") as string) || null,
       pays: (formData.get("pays") as string) || "France",
+      type_produit: (formData.get("type_produit") as string) || null,
       site_web: (formData.get("site_web") as string) || null,
       photo_url: photoUrl,
     })

@@ -39,6 +39,17 @@ export default async function SuggererProducteurPage({
             <Input name="nom" required placeholder="Ex: Distillerie du Vercors" />
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Ville <span className="text-foreground/50">(optionnel)</span></label>
+              <Input name="ville" placeholder="Ex: Bordeaux, Tokyo..." />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Pays</label>
+              <Input name="pays" defaultValue="France" placeholder="Ex: France, Japon..." />
+            </div>
+          </div>
+
           <div>
             <label className="mb-1 block text-sm font-medium">
               Site web <span className="text-foreground/50">(optionnel)</span>

@@ -36,6 +36,8 @@ export async function suggererProducteurAction(formData: FormData) {
   const { error } = await supabase.from("suggestions_producteurs").insert({
     utilisateur_id: user.id,
     nom,
+    ville: (formData.get("ville") as string) || null,
+    pays: (formData.get("pays") as string) || "France",
     site_web: (formData.get("site_web") as string) || null,
     message: (formData.get("message") as string) || null,
   });
