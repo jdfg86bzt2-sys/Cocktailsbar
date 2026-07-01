@@ -25,6 +25,22 @@ export async function publierSuggestionCocktail(suggestionId: string) {
 
   if (!s) return;
 
+  // Vérifier doublon avant publication
+  const { data: existant } = await supabase
+    .from("cocktails")
+    .select("id")
+    .ilike("nom", s.nom)
+    .maybeSingle();
+
+  if (existant) {
+    await supabase
+      .from("suggestions_cocktails")
+      .update({ statut: "refuse" })
+      .eq("id", suggestionId);
+    revalidatePath("/admin/cocktails");
+    return;
+  }
+
   // Créer le cocktail
   const { data: cocktail, error } = await supabase
     .from("cocktails")

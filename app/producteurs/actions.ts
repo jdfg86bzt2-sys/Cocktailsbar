@@ -8,6 +8,19 @@ export async function creerProducteurAction(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
+  const nom = (formData.get("nom") as string).trim();
+
+  // Vérifier si un producteur avec ce nom existe déjà
+  const { data: existant } = await supabase
+    .from("producteurs")
+    .select("id")
+    .ilike("nom", nom)
+    .maybeSingle();
+
+  if (existant) {
+    redirect(`/producteurs/nouveau?erreur=${encodeURIComponent(`Un producteur nommé "${nom}" existe déjà.`)}`);
+  }
+
   const fichierPhoto = formData.get("photo") as File;
   let photoUrl: string | null = null;
 
@@ -26,7 +39,7 @@ export async function creerProducteurAction(formData: FormData) {
     .from("producteurs")
     .insert({
       createur_id: user.id,
-      nom: formData.get("nom") as string,
+      nom,
       description: (formData.get("description") as string) || null,
       type: formData.get("type") as string,
       region: (formData.get("region") as string) || null,
@@ -38,7 +51,10 @@ export async function creerProducteurAction(formData: FormData) {
     .single();
 
   if (error || !producteur) {
-    redirect(`/producteurs/nouveau?erreur=${encodeURIComponent(error?.message ?? "Erreur inconnue")}`);
+    const msg = error?.code === "23505"
+      ? `Un producteur nommé "${nom}" existe déjà.`
+      : (error?.message ?? "Erreur inconnue");
+    redirect(`/producteurs/nouveau?erreur=${encodeURIComponent(msg)}`);
   }
 
   redirect(`/producteurs/${producteur.id}`);

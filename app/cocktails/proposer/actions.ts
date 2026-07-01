@@ -45,11 +45,36 @@ export async function proposerCocktailAction(formData: FormData) {
     .map((texte, i) => ({ texte: texte.trim(), ordre: i }))
     .filter((e) => e.texte.length > 0);
 
+  const nom = (formData.get("nom") as string).trim();
+
+  // Vérifier si ce cocktail existe déjà en base
+  const { data: existant } = await supabase
+    .from("cocktails")
+    .select("id")
+    .ilike("nom", nom)
+    .maybeSingle();
+
+  if (existant) {
+    redirect(`/cocktails/proposer?erreur=${encodeURIComponent(`Un cocktail nommé "${nom}" existe déjà sur la plateforme.`)}`);
+  }
+
+  // Vérifier si une proposition en attente existe déjà pour ce nom
+  const { data: dejaPropose } = await supabase
+    .from("suggestions_cocktails")
+    .select("id")
+    .ilike("nom", nom)
+    .eq("statut", "en_attente")
+    .maybeSingle();
+
+  if (dejaPropose) {
+    redirect(`/cocktails/proposer?erreur=${encodeURIComponent(`Une proposition pour "${nom}" est déjà en attente de validation.`)}`);
+  }
+
   const tagsGout = formData.getAll("tags_gout[]") as string[];
 
   const { error } = await supabase.from("suggestions_cocktails").insert({
     utilisateur_id: user.id,
-    nom: formData.get("nom") as string,
+    nom,
     description: (formData.get("description") as string) || null,
     categorie_alcool: (formData.get("categorie_alcool") as string) || null,
     technique: (formData.get("technique") as string) || null,
