@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useTransition } from "react";
+import { enregistrerRecreation, supprimerRecreation } from "@/app/cocktails/[id]/actions";
 
 export function BoutonRecreation({
   cocktailId,
@@ -20,12 +19,11 @@ export function BoutonRecreation({
   const [actif, setActif] = useState(dejaRecrée);
   const [count, setCount] = useState(nbRecreations);
   const [modalOuvert, setModalOuvert] = useState(false);
-  const [chargement, setChargement] = useState(false);
   const [apercu, setApercu] = useState<string | null>(maRecreation?.photo_url ?? null);
   const [note, setNote] = useState(maRecreation?.note ?? "");
   const [succes, setSucces] = useState(false);
   const fichierRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   if (!userId) {
     return (
@@ -36,78 +34,45 @@ export function BoutonRecreation({
     );
   }
 
-  function ouvrirModal() {
-    setModalOuvert(true);
-    setSucces(false);
-  }
-
   function surChangementFichier(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    const url = URL.createObjectURL(f);
-    setApercu(url);
+    setApercu(URL.createObjectURL(f));
   }
 
-  async function soumettre() {
-    setChargement(true);
-    const supabase = createClient();
+  function soumettre(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
 
-    let photoUrl: string | null = maRecreation?.photo_url ?? null;
-
-    const fichier = fichierRef.current?.files?.[0];
-    if (fichier) {
-      const ext = fichier.name.split(".").pop();
-      const chemin = `recreations/${userId}_${cocktailId}.${ext}`;
-      const { error: uploadErr } = await supabase.storage
-        .from("public-images")
-        .upload(chemin, fichier, { upsert: true });
-      if (!uploadErr) {
-        const { data } = supabase.storage.from("public-images").getPublicUrl(chemin);
-        photoUrl = `${data.publicUrl}?t=${Date.now()}`;
+    startTransition(async () => {
+      await enregistrerRecreation(cocktailId, formData);
+      if (!actif) {
+        setCount((n) => n + 1);
+        setActif(true);
       }
-    }
-
-    if (actif) {
-      // Mise à jour
-      await supabase
-        .from("recreations")
-        .update({ photo_url: photoUrl, note: note || null })
-        .match({ cocktail_id: cocktailId, user_id: userId });
-    } else {
-      // Nouvelle recréation
-      await supabase
-        .from("recreations")
-        .insert({ cocktail_id: cocktailId, user_id: userId, photo_url: photoUrl, note: note || null });
-      setCount((n) => n + 1);
-      setActif(true);
-    }
-
-    setSucces(true);
-    setChargement(false);
-    setTimeout(() => {
-      setModalOuvert(false);
-      router.refresh();
-    }, 1200);
+      setSucces(true);
+      setTimeout(() => {
+        setModalOuvert(false);
+        setSucces(false);
+      }, 1400);
+    });
   }
 
-  async function supprimer() {
-    setChargement(true);
-    const supabase = createClient();
-    await supabase.from("recreations").delete().match({ cocktail_id: cocktailId, user_id: userId });
-    setActif(false);
-    setCount((n) => n - 1);
-    setApercu(null);
-    setNote("");
-    setModalOuvert(false);
-    setChargement(false);
-    router.refresh();
+  function supprimer() {
+    startTransition(async () => {
+      await supprimerRecreation(cocktailId);
+      setActif(false);
+      setCount((n) => n - 1);
+      setApercu(null);
+      setNote("");
+      setModalOuvert(false);
+    });
   }
 
   return (
     <>
-      {/* Bouton principal */}
       <button
-        onClick={ouvrirModal}
+        onClick={() => { setModalOuvert(true); setSucces(false); }}
         className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
           actif
             ? "border-accent bg-accent/10 text-accent hover:bg-accent/20"
@@ -116,24 +81,22 @@ export function BoutonRecreation({
       >
         🔁
         <span>{count} recréation{count !== 1 ? "s" : ""}</span>
-        <span className="text-current/60">{actif ? "· Tu l'as faite ✓" : "· J'ai fait ce cocktail"}</span>
+        <span className="opacity-60">{actif ? "· Tu l'as faite ✓" : "· J'ai fait ce cocktail"}</span>
       </button>
 
-      {/* Modal */}
       {modalOuvert && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4">
-          {/* Overlay */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setModalOuvert(false)} />
 
           <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl">
             {succes ? (
               <div className="py-8 text-center">
                 <p className="text-4xl mb-3">🍹</p>
-                <p className="font-display text-xl text-accent">{actif ? "Mis à jour !" : "Ajouté à tes recréations !"}</p>
+                <p className="font-display text-xl text-accent">{actif && !dejaRecrée ? "Ajouté !" : "Mis à jour !"}</p>
                 <p className="mt-1 text-sm text-foreground/50">Ta trace est enregistrée.</p>
               </div>
             ) : (
-              <>
+              <form onSubmit={soumettre}>
                 <h3 className="font-display text-xl text-accent mb-1">
                   {actif ? "Modifier ta recréation" : "J'ai fait ce cocktail"}
                 </h3>
@@ -163,34 +126,40 @@ export function BoutonRecreation({
                     </div>
                   )}
                 </div>
-                <input ref={fichierRef} type="file" accept="image/*" className="hidden" onChange={surChangementFichier} />
+                <input
+                  ref={fichierRef}
+                  type="file"
+                  name="photo"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={surChangementFichier}
+                />
 
                 {/* Note */}
                 <textarea
+                  name="note"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Ajoute une note… (substitution, twist perso, avis...)"
+                  placeholder="Ajoute une note… (substitution, avis, twist perso...)"
                   rows={3}
                   maxLength={300}
-                  className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-foreground/40 focus:border-accent focus:outline-none resize-none"
+                  className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm placeholder:text-foreground/40 focus:border-accent focus:outline-none resize-none"
                 />
                 <p className="mt-1 text-right text-xs text-foreground/30">{note.length}/300</p>
 
-                {/* Actions */}
                 <div className="mt-4 flex gap-2">
                   <button
-                    type="button"
-                    onClick={soumettre}
-                    disabled={chargement}
+                    type="submit"
+                    disabled={isPending}
                     className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                   >
-                    {chargement ? "Enregistrement..." : actif ? "Mettre à jour" : "Valider"}
+                    {isPending ? "Enregistrement..." : actif ? "Mettre à jour" : "Valider"}
                   </button>
                   {actif && (
                     <button
                       type="button"
                       onClick={supprimer}
-                      disabled={chargement}
+                      disabled={isPending}
                       className="rounded-xl border border-border px-4 py-2.5 text-sm text-foreground/50 hover:border-accent hover:text-accent disabled:opacity-50"
                     >
                       Retirer
@@ -204,7 +173,7 @@ export function BoutonRecreation({
                     Annuler
                   </button>
                 </div>
-              </>
+              </form>
             )}
           </div>
         </div>

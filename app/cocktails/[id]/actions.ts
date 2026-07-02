@@ -1,0 +1,63 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+
+export async function enregistrerRecreation(cocktailId: string, formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/connexion");
+
+  const fichier = formData.get("photo") as File | null;
+  const note = (formData.get("note") as string) || null;
+
+  let photoUrl: string | null = null;
+
+  if (fichier && fichier.size > 0) {
+    const ext = fichier.name.split(".").pop();
+    const chemin = `recreations/${user.id}_${cocktailId}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("public-images")
+      .upload(chemin, fichier, { upsert: true });
+    if (!uploadErr) {
+      const { data } = supabase.storage.from("public-images").getPublicUrl(chemin);
+      photoUrl = `${data.publicUrl}?t=${Date.now()}`;
+    }
+  }
+
+  // Upsert : créer ou mettre à jour
+  const { data: existante } = await supabase
+    .from("recreations")
+    .select("id, photo_url")
+    .eq("cocktail_id", cocktailId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existante) {
+    await supabase
+      .from("recreations")
+      .update({ note, photo_url: photoUrl ?? existante.photo_url })
+      .eq("id", existante.id);
+  } else {
+    await supabase
+      .from("recreations")
+      .insert({ cocktail_id: cocktailId, user_id: user.id, note, photo_url: photoUrl });
+  }
+
+  revalidatePath(`/cocktails/${cocktailId}`);
+}
+
+export async function supprimerRecreation(cocktailId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("recreations")
+    .delete()
+    .eq("cocktail_id", cocktailId)
+    .eq("user_id", user.id);
+
+  revalidatePath(`/cocktails/${cocktailId}`);
+}
