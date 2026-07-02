@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function enregistrerRecreation(
   cocktailId: string,
@@ -21,7 +22,8 @@ export async function enregistrerRecreation(
     const ext = fichier.name.split(".").pop();
     const chemin = `recreations/${user.id}_${cocktailId}.${ext}`;
 
-    const { error: uploadErr } = await supabase.storage
+    const admin = createAdminClient();
+    const { error: uploadErr } = await admin.storage
       .from("public-images")
       .upload(chemin, fichier, { upsert: true });
 
@@ -29,7 +31,7 @@ export async function enregistrerRecreation(
       return { ok: false, erreur: `Upload échoué: ${uploadErr.message}` };
     }
 
-    const { data } = supabase.storage.from("public-images").getPublicUrl(chemin);
+    const { data } = admin.storage.from("public-images").getPublicUrl(chemin);
     photoUrl = data.publicUrl;
   }
 
