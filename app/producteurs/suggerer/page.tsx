@@ -69,6 +69,13 @@ export default async function SuggererProducteurPage({
             />
           </div>
 
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Photo <span className="text-foreground/50">(optionnel)</span>
+            </label>
+            <input type="file" name="photo" accept="image/*" className="w-full text-sm text-foreground/70 file:mr-3 file:rounded file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:border-accent" />
+          </div>
+
           <SubmitButton label="Envoyer la suggestion" labelPending="Envoi..." />
         </form>
       )}

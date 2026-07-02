@@ -30,10 +30,7 @@ export default async function AdminSuggestionsPage() {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="font-display text-4xl text-accent">Suggestions producteurs</h1>
-        <Link
-          href="/producteurs/nouveau"
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/80"
-        >
+        <Link href="/producteurs/nouveau" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/80">
           + Créer une fiche
         </Link>
       </div>
@@ -43,48 +40,62 @@ export default async function AdminSuggestionsPage() {
       ) : (
         <div className="mb-10 flex flex-col gap-4">
           <h2 className="text-lg font-semibold">En attente ({enAttente.length})</h2>
-          {enAttente.map((s) => (
-            <div key={s.id} className="rounded-lg border border-border bg-surface p-5">
-              <div className="mb-1 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-lg font-semibold">{s.nom}</p>
-                  <p className="text-xs text-foreground/50">
-                    par {mapPseudos[s.utilisateur_id] ?? "inconnu"} —{" "}
-                    {new Date(s.created_at).toLocaleDateString("fr-FR")}
-                  </p>
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  <form action={changerStatutSuggestion.bind(null, s.id, "refuse")}>
-                    <button
-                      type="submit"
-                      className="rounded border border-border px-3 py-1 text-sm text-foreground/60 hover:border-accent hover:text-accent"
-                    >
-                      Refuser
-                    </button>
-                  </form>
-                  <Link
-                    href={`/producteurs/nouveau?nom=${encodeURIComponent(s.nom)}&site_web=${encodeURIComponent(s.site_web ?? "")}`}
-                    className="rounded bg-accent px-3 py-1 text-sm text-white hover:bg-accent/80"
-                  >
-                    Créer la fiche
-                  </Link>
+          {enAttente.map((s) => {
+            const params = new URLSearchParams();
+            params.set("nom", s.nom ?? "");
+            if (s.site_web) params.set("site_web", s.site_web);
+            if (s.ville) params.set("ville", s.ville);
+            if (s.pays) params.set("pays", s.pays);
+            if (s.photo_url) params.set("photo_url", s.photo_url);
+
+            return (
+              <div key={s.id} className="rounded-lg border border-border bg-surface p-5">
+                <div className="flex gap-4">
+                  {s.photo_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.photo_url} alt={s.nom} className="h-20 w-20 shrink-0 rounded-lg object-cover" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-lg font-semibold">{s.nom}</p>
+                        <p className="text-xs text-foreground/50">
+                          par {mapPseudos[s.utilisateur_id] ?? "inconnu"} —{" "}
+                          {new Date(s.created_at).toLocaleDateString("fr-FR")}
+                        </p>
+                        {(s.ville || s.pays) && (
+                          <p className="mt-0.5 text-xs text-foreground/60">
+                            📍 {[s.ville, s.pays].filter(Boolean).join(", ")}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <form action={changerStatutSuggestion.bind(null, s.id, "refuse")}>
+                          <button type="submit" className="rounded border border-border px-3 py-1 text-sm text-foreground/60 hover:border-accent hover:text-accent">
+                            Refuser
+                          </button>
+                        </form>
+                        <Link
+                          href={`/producteurs/nouveau?${params.toString()}`}
+                          className="rounded bg-accent px-3 py-1 text-sm text-white hover:bg-accent/80"
+                        >
+                          Créer la fiche
+                        </Link>
+                      </div>
+                    </div>
+                    {s.site_web && (
+                      <a href={s.site_web} target="_blank" rel="noopener noreferrer" className="mt-1 block text-sm text-accent underline truncate">
+                        {s.site_web}
+                      </a>
+                    )}
+                    {s.message && (
+                      <p className="mt-2 text-sm text-foreground/70 italic">&ldquo;{s.message}&rdquo;</p>
+                    )}
+                  </div>
                 </div>
               </div>
-              {s.site_web && (
-                <a
-                  href={s.site_web}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-accent underline"
-                >
-                  {s.site_web}
-                </a>
-              )}
-              {s.message && (
-                <p className="mt-2 text-sm text-foreground/70 italic">&ldquo;{s.message}&rdquo;</p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

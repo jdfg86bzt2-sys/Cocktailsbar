@@ -22,9 +22,11 @@ export async function creerProducteurAction(formData: FormData) {
   }
 
   const fichierPhoto = formData.get("photo") as File;
+  const photoChoix = formData.get("photo_choix") as string | null;
+  const photoUrlSuggestion = formData.get("photo_url_suggestion") as string | null;
   let photoUrl: string | null = null;
 
-  if (fichierPhoto && fichierPhoto.size > 0) {
+  if (fichierPhoto && fichierPhoto.size > 0 && photoChoix !== "suggestion") {
     const ext = fichierPhoto.name.split(".").pop();
     const chemin = `producteurs/${crypto.randomUUID()}.${ext}`;
     const { error: uploadErr } = await supabase.storage
@@ -33,6 +35,8 @@ export async function creerProducteurAction(formData: FormData) {
       const { data } = supabase.storage.from("public-images").getPublicUrl(chemin);
       photoUrl = data.publicUrl;
     }
+  } else if (photoChoix === "suggestion" && photoUrlSuggestion) {
+    photoUrl = photoUrlSuggestion;
   }
 
   const { data: producteur, error } = await supabase

@@ -33,6 +33,19 @@ export async function suggererProducteurAction(formData: FormData) {
     redirect(`/producteurs/suggerer?erreur=${encodeURIComponent(`Une suggestion pour "${nom}" est déjà en attente de validation.`)}`);
   }
 
+  const fichierPhoto = formData.get("photo") as File;
+  let photoUrl: string | null = null;
+  if (fichierPhoto && fichierPhoto.size > 0) {
+    const ext = fichierPhoto.name.split(".").pop();
+    const chemin = `suggestions/producteurs/${crypto.randomUUID()}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("public-images").upload(chemin, fichierPhoto);
+    if (!uploadErr) {
+      const { data } = supabase.storage.from("public-images").getPublicUrl(chemin);
+      photoUrl = data.publicUrl;
+    }
+  }
+
   const { error } = await supabase.from("suggestions_producteurs").insert({
     utilisateur_id: user.id,
     nom,
@@ -40,6 +53,7 @@ export async function suggererProducteurAction(formData: FormData) {
     pays: (formData.get("pays") as string) || "France",
     site_web: (formData.get("site_web") as string) || null,
     message: (formData.get("message") as string) || null,
+    photo_url: photoUrl,
   });
 
   if (error) {

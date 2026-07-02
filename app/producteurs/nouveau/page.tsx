@@ -8,9 +8,9 @@ import { TYPES_PRODUCTEUR } from "@/lib/types";
 export default async function NouveauProducteurPage({
   searchParams,
 }: {
-  searchParams: Promise<{ erreur?: string; nom?: string; site_web?: string }>;
+  searchParams: Promise<{ erreur?: string; nom?: string; site_web?: string; ville?: string; pays?: string; photo_url?: string }>;
 }) {
-  const { erreur, nom, site_web } = await searchParams;
+  const { erreur, nom, site_web, ville, pays, photo_url } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
@@ -22,9 +22,7 @@ export default async function NouveauProducteurPage({
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
         <h1 className="font-display text-3xl text-accent">Accès réservé</h1>
-        <p className="mt-4 text-foreground/70">
-          Seuls les administrateurs peuvent créer une fiche producteur.
-        </p>
+        <p className="mt-4 text-foreground/70">Seuls les administrateurs peuvent créer une fiche producteur.</p>
       </div>
     );
   }
@@ -49,11 +47,7 @@ export default async function NouveauProducteurPage({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1 block text-sm font-medium">Type *</label>
-            <select
-              name="type"
-              required
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-foreground focus:border-accent focus:outline-none"
-            >
+            <select name="type" required className="w-full rounded-md border border-border bg-surface px-3 py-2 text-foreground focus:border-accent focus:outline-none">
               {TYPES_PRODUCTEUR.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
@@ -68,11 +62,11 @@ export default async function NouveauProducteurPage({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1 block text-sm font-medium">Ville</label>
-            <Input name="ville" placeholder="Ex: Lyon, Kyoto, Havane..." />
+            <Input name="ville" defaultValue={ville ?? ""} placeholder="Ex: Lyon, Kyoto, Havane..." />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">Pays</label>
-            <Input name="pays" defaultValue="France" placeholder="Ex: France, Japon, Cuba..." />
+            <Input name="pays" defaultValue={pays ?? "France"} placeholder="Ex: France, Japon, Cuba..." />
           </div>
         </div>
 
@@ -100,7 +94,28 @@ export default async function NouveauProducteurPage({
           <label className="mb-1 block text-sm font-medium">
             Photo <span className="text-foreground/50">(optionnel)</span>
           </label>
-          <input type="file" name="photo" accept="image/*" className="w-full text-sm" />
+          {/* Photo proposée par l'utilisateur */}
+          {photo_url && (
+            <div className="mb-3">
+              <p className="mb-1.5 text-xs text-foreground/50">Photo suggérée par l&apos;utilisateur :</p>
+              <div className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photo_url} alt="Photo suggérée" className="h-24 w-24 rounded-lg object-cover border border-border" />
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="photo_choix" value="suggestion" defaultChecked className="accent-accent" />
+                    Utiliser cette photo
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="photo_choix" value="nouvelle" className="accent-accent" />
+                    Uploader une autre
+                  </label>
+                </div>
+              </div>
+              <input type="hidden" name="photo_url_suggestion" value={photo_url} />
+            </div>
+          )}
+          <input type="file" name="photo" accept="image/*" className="w-full text-sm text-foreground/70 file:mr-3 file:rounded file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:border-accent" />
         </div>
 
         <SubmitButton label="Publier la fiche" labelPending="Publication..." />
