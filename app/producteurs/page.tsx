@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { TYPES_PRODUCTEUR } from "@/lib/types";
+import { FiltresProducteurs } from "@/components/ui/filtres-producteurs";
 
 const DRAPEAUX: Record<string, string> = {
   France: "🇫🇷", "États-Unis": "🇺🇸", "USA": "🇺🇸", Mexique: "🇲🇽",
@@ -16,10 +18,6 @@ const DRAPEAUX: Record<string, string> = {
   Turquie: "🇹🇷", Maroc: "🇲🇦", Inde: "🇮🇳", Chine: "🇨🇳",
   Taiwan: "🇹🇼", Thaïlande: "🇹🇭", Vietnam: "🇻🇳",
 };
-
-function drapeau(pays: string) {
-  return DRAPEAUX[pays] ?? "🌍";
-}
 
 export default async function ProducteursPage({
   searchParams,
@@ -47,12 +45,11 @@ export default async function ProducteursPage({
 
   const { data: producteurs } = await requete;
 
-  // Pays disponibles
   const { data: tousProducteurs } = await supabase
     .from("producteurs").select("pays").not("pays", "is", null);
   const paysDisponibles = [...new Set((tousProducteurs ?? []).map((p) => p.pays).filter(Boolean))].sort() as string[];
 
-  // Grouper par pays
+  // Grouper par pays (seulement si pas de filtre actif ou filtre uniquement sur pays)
   const grouped: Record<string, typeof producteurs> = {};
   for (const p of producteurs ?? []) {
     const k = p.pays ?? "Autre";
@@ -66,17 +63,16 @@ export default async function ProducteursPage({
   });
 
   const filtreActif = !!(type || pays || q);
-  const afficherGroupes = !filtreActif || !!pays;
+  const afficherGroupes = !type && !q;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      {/* En-tête */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-4xl text-accent">Producteurs</h1>
           <p className="mt-1 text-sm text-foreground/50">
             Distilleries, vignerons et artisans du monde entier · {producteurs?.length ?? 0} référencé{(producteurs?.length ?? 0) !== 1 ? "s" : ""}
-            {paysDisponibles.length > 0 && <> dans {paysDisponibles.length} pays</>}
+            {paysDisponibles.length > 1 && <> dans {paysDisponibles.length} pays</>}
           </p>
         </div>
         <div className="flex gap-2">
@@ -109,44 +105,11 @@ export default async function ProducteursPage({
         </div>
       </form>
 
-      {/* Filtres */}
-      <div className="mt-4 space-y-3">
-        {/* Types */}
-        <div className="flex flex-wrap gap-2">
-          <a href={buildUrl({ type, pays, q }, { type: undefined })}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${!type ? "border-accent bg-accent text-white" : "border-border hover:border-accent"}`}>
-            Tous les types
-          </a>
-          {TYPES_PRODUCTEUR.map((t) => (
-            <a key={t.value} href={buildUrl({ type, pays, q }, { type: type === t.value ? undefined : t.value })}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${type === t.value ? "border-accent bg-accent text-white" : "border-border hover:border-accent"}`}>
-              {t.label}
-            </a>
-          ))}
-        </div>
+      {/* Filtres dropdowns */}
+      <Suspense>
+        <FiltresProducteurs valeurs={{ type, pays, q }} paysDisponibles={paysDisponibles} />
+      </Suspense>
 
-        {/* Pays */}
-        {paysDisponibles.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <a href={buildUrl({ type, pays, q }, { pays: undefined })}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${!pays ? "border-accent bg-accent text-white" : "border-border hover:border-accent"}`}>
-              🌍 Tous les pays
-            </a>
-            {paysDisponibles.map((p) => (
-              <a key={p} href={buildUrl({ type, pays, q }, { pays: pays === p ? undefined : p })}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${pays === p ? "border-accent bg-accent text-white" : "border-border hover:border-accent"}`}>
-                {drapeau(p)} {p}
-              </a>
-            ))}
-          </div>
-        )}
-
-        {filtreActif && (
-          <a href="/producteurs" className="inline-block text-xs text-foreground/40 hover:text-accent">✕ Effacer les filtres</a>
-        )}
-      </div>
-
-      {/* Résultats vides */}
       {(!producteurs || producteurs.length === 0) && (
         <div className="mt-20 text-center">
           <p className="text-2xl mb-3">🌍</p>
@@ -158,14 +121,13 @@ export default async function ProducteursPage({
         </div>
       )}
 
-      {/* Grille groupée par pays */}
       {(producteurs?.length ?? 0) > 0 && (
         <div className="mt-10 space-y-10">
           {afficherGroupes
             ? paysTries.map((paysNom) => (
               <section key={paysNom}>
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="text-2xl">{drapeau(paysNom)}</span>
+                  <span className="text-2xl">{DRAPEAUX[paysNom] ?? "🌍"}</span>
                   <h2 className="font-display text-xl">{paysNom}</h2>
                   <span className="text-xs text-foreground/40">{grouped[paysNom]?.length} producteur{(grouped[paysNom]?.length ?? 0) !== 1 ? "s" : ""}</span>
                   <div className="flex-1 border-b border-border" />
@@ -205,7 +167,7 @@ function CarteProducteur({ p }: {
           // eslint-disable-next-line @next/next/no-img-element
           ? <img src={p.photo_url} alt={p.nom} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
           : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-1">
+            <div className="flex h-full w-full items-center justify-center">
               <span className="font-display text-5xl font-bold text-accent/20">{p.nom.charAt(0)}</span>
             </div>
           )
@@ -229,12 +191,4 @@ function CarteProducteur({ p }: {
       </div>
     </Link>
   );
-}
-
-function buildUrl(current: { type?: string; pays?: string; q?: string }, overrides: Partial<typeof current>) {
-  const next = { ...current, ...overrides };
-  const params = new URLSearchParams();
-  Object.entries(next).forEach(([k, v]) => { if (v) params.set(k, v); });
-  const qs = params.toString();
-  return `/producteurs${qs ? `?${qs}` : ""}`;
 }
