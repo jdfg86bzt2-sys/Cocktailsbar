@@ -190,7 +190,6 @@ export function FiltresProducteurs({
                     <p className="px-4 py-3 text-sm text-foreground/40">Aucun résultat</p>
                   )}
                   {paysFiltres.map((p) => {
-                    const aDesProducteurs = paysDisponibles.includes(p.label);
                     return (
                       <button
                         key={p.label}
@@ -203,9 +202,6 @@ export function FiltresProducteurs({
                         <span className="flex items-center gap-2">
                           <span>{p.drapeau}</span>
                           <span>{p.label}</span>
-                          {aDesProducteurs && (
-                            <span className="rounded-full bg-accent/20 px-1.5 py-0.5 text-[10px] text-accent">•</span>
-                          )}
                         </span>
                         {valeurs.pays === p.label && <span className="text-accent">✓</span>}
                       </button>
