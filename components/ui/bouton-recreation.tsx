@@ -23,6 +23,7 @@ export function BoutonRecreation({
   const [apercu, setApercu] = useState<string | null>(maRecreation?.photo_url ?? null);
   const [note, setNote] = useState(maRecreation?.note ?? "");
   const [succes, setSucces] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
   const fichierRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -44,14 +45,20 @@ export function BoutonRecreation({
 
   function soumettre(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setErreur(null);
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
-      await enregistrerRecreation(cocktailId, formData);
+      const res = await enregistrerRecreation(cocktailId, formData);
+      if (!res.ok) {
+        setErreur(res.erreur ?? "Erreur inconnue");
+        return;
+      }
       if (!actif) {
         setCount((n) => n + 1);
         setActif(true);
       }
+      if (res.photoUrl) setApercu(res.photoUrl);
       setSucces(true);
       router.refresh();
       setTimeout(() => {
@@ -150,6 +157,12 @@ export function BoutonRecreation({
                   className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm placeholder:text-foreground/40 focus:border-accent focus:outline-none resize-none"
                 />
                 <p className="mt-1 text-right text-xs text-foreground/30">{note.length}/300</p>
+
+                {erreur && (
+                  <p className="mt-2 rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-xs text-red-400">
+                    {erreur}
+                  </p>
+                )}
 
                 <div className="mt-4 flex gap-2">
                   <button

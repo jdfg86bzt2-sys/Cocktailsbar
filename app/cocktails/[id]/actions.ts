@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export async function enregistrerRecreation(cocktailId: string, formData: FormData) {
+export async function enregistrerRecreation(
+  cocktailId: string,
+  formData: FormData
+): Promise<{ ok: boolean; erreur?: string; photoUrl?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
@@ -17,18 +20,19 @@ export async function enregistrerRecreation(cocktailId: string, formData: FormDa
   if (fichier && fichier.size > 0) {
     const ext = fichier.name.split(".").pop();
     const chemin = `recreations/${user.id}_${cocktailId}.${ext}`;
+
     const { error: uploadErr } = await supabase.storage
       .from("public-images")
       .upload(chemin, fichier, { upsert: true });
+
     if (uploadErr) {
-      console.error("Upload error:", uploadErr);
-    } else {
-      const { data } = supabase.storage.from("public-images").getPublicUrl(chemin);
-      photoUrl = data.publicUrl;
+      return { ok: false, erreur: `Upload échoué: ${uploadErr.message}` };
     }
+
+    const { data } = supabase.storage.from("public-images").getPublicUrl(chemin);
+    photoUrl = data.publicUrl;
   }
 
-  // Upsert : créer ou mettre à jour
   const { data: existante } = await supabase
     .from("recreations")
     .select("id, photo_url")
@@ -37,17 +41,20 @@ export async function enregistrerRecreation(cocktailId: string, formData: FormDa
     .maybeSingle();
 
   if (existante) {
-    await supabase
+    const { error } = await supabase
       .from("recreations")
       .update({ note, photo_url: photoUrl ?? existante.photo_url })
       .eq("id", existante.id);
+    if (error) return { ok: false, erreur: `DB update: ${error.message}` };
   } else {
-    await supabase
+    const { error } = await supabase
       .from("recreations")
       .insert({ cocktail_id: cocktailId, user_id: user.id, note, photo_url: photoUrl });
+    if (error) return { ok: false, erreur: `DB insert: ${error.message}` };
   }
 
   revalidatePath(`/cocktails/${cocktailId}`);
+  return { ok: true, photoUrl: photoUrl ?? undefined };
 }
 
 export async function supprimerRecreation(cocktailId: string) {
