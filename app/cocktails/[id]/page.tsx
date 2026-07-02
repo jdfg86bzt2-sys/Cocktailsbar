@@ -12,7 +12,6 @@ export default async function CocktailDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data: cocktail } = await supabase
@@ -27,27 +26,27 @@ export default async function CocktailDetailPage({
     { data: ingredients },
     { data: etapes },
     { data: twists },
-    { count: nbRecreations },
+    { data: recreations },
     { data: liensProducteurs },
   ] = await Promise.all([
     supabase.from("cocktail_ingredients").select("ingredient_nom, quantite, unite").eq("cocktail_id", id).order("ordre"),
     supabase.from("cocktail_etapes").select("texte, ordre").eq("cocktail_id", id).order("ordre"),
     supabase.from("twists").select("id, nom, description, created_at, profiles(pseudo)").eq("cocktail_origine_id", id).order("created_at", { ascending: false }),
-    supabase.from("recreations").select("*", { count: "exact", head: true }).eq("cocktail_id", id),
+    supabase.from("recreations").select("id, user_id, photo_url, note, created_at, profiles(pseudo, avatar_url)").eq("cocktail_id", id).order("created_at", { ascending: false }),
     supabase.from("cocktail_producteurs").select("producteurs(id, nom, type)").eq("cocktail_id", id),
   ]);
 
-  // Vérifie si l'utilisateur connecté a déjà déclaré une recréation
-  let dejaRecrée = false;
+  const nbRecreations = recreations?.length ?? 0;
+
+  let maRecreation: { photo_url: string | null; note: string | null } | null = null;
   if (user) {
-    const { data: maRec } = await supabase
-      .from("recreations")
-      .select("id")
-      .eq("cocktail_id", id)
-      .eq("user_id", user.id)
-      .single();
-    dejaRecrée = !!maRec;
+    const found = recreations?.find((r) => r.user_id === user.id);
+    if (found) maRecreation = { photo_url: found.photo_url, note: found.note };
   }
+  const dejaRecrée = !!maRecreation;
+
+  const recreationsAvecPhoto = recreations?.filter((r) => r.photo_url) ?? [];
+  const recreationsSansPhoto = recreations?.filter((r) => !r.photo_url) ?? [];
 
   const createur = cocktail.profiles as unknown as { id: string; pseudo: string } | null;
   const tags = (cocktail.tags_gout ?? []) as string[];
@@ -57,14 +56,15 @@ export default async function CocktailDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      {/* En-tête avec badge signature si applicable */}
+      {/* Photo hero */}
+      {cocktail.photo_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={cocktail.photo_url} alt={cocktail.nom} className="mb-6 h-72 w-full rounded-2xl object-cover" />
+      )}
+
+      {/* En-tête */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          {cocktail.photo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={cocktail.photo_url} alt={cocktail.nom}
-              className="mb-6 h-64 w-full rounded-lg object-cover" />
-          )}
           <h1 className="font-display text-4xl text-accent">{cocktail.nom}</h1>
           <div className="mt-2 flex flex-wrap gap-2 text-sm text-foreground/60">
             <span>{cocktail.categorie_alcool}</span>
@@ -75,30 +75,18 @@ export default async function CocktailDetailPage({
             <span>
               par{" "}
               {createur && (
-                <Link href={`/profil/${createur.id}`} className="text-accent hover:underline">
-                  {createur.pseudo}
-                </Link>
+                <Link href={`/profil/${createur.id}`} className="text-accent hover:underline">{createur.pseudo}</Link>
               )}
             </span>
           </div>
-
-          {/* Horodatage "premier à publier" pour les signatures */}
           {cocktail.est_signature && (
-            <p className="mt-1 text-xs text-foreground/50">
-              Première publication : {datePublication}
-            </p>
+            <p className="mt-1 text-xs text-foreground/50">Première publication : {datePublication}</p>
           )}
         </div>
-
-        {/* Badge signature */}
-        {cocktail.est_signature && (
-          <div className="shrink-0">
-            <BadgeSignature taille="lg" />
-          </div>
-        )}
+        {cocktail.est_signature && <BadgeSignature taille="lg" />}
       </div>
 
-      {/* Profil de goût */}
+      {/* Tags goût */}
       {tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {tags.map((tag) => (
@@ -109,18 +97,18 @@ export default async function CocktailDetailPage({
         </div>
       )}
 
-      {/* Compteur de recréations + bouton */}
+      {/* Bouton recréation */}
       <div className="mt-6">
         <BoutonRecreation
           cocktailId={id}
           dejaRecrée={dejaRecrée}
-          nbRecreations={nbRecreations ?? 0}
+          nbRecreations={nbRecreations}
           userId={user?.id ?? null}
+          maRecreation={maRecreation}
         />
       </div>
 
-
-      {/* L'inspiration */}
+      {/* Description */}
       {cocktail.description && (
         <div className="mt-8">
           <h2 className="text-lg font-semibold">L&apos;inspiration</h2>
@@ -156,7 +144,7 @@ export default async function CocktailDetailPage({
         </>
       )}
 
-      {/* Producteurs utilisés */}
+      {/* Producteurs */}
       {liensProducteurs && liensProducteurs.length > 0 && (
         <div className="mt-8">
           <h2 className="text-lg font-semibold">Produits utilisés</h2>
@@ -175,6 +163,49 @@ export default async function CocktailDetailPage({
         </div>
       )}
 
+      {/* Recréations de la communauté */}
+      {nbRecreations > 0 && (
+        <div className="mt-10">
+          <h2 className="text-xl font-semibold mb-4">
+            La communauté l&apos;a fait <span className="text-foreground/40 text-base font-normal">({nbRecreations})</span>
+          </h2>
+
+          {/* Grille photos */}
+          {recreationsAvecPhoto.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mb-5">
+              {recreationsAvecPhoto.map((r) => {
+                const profil = r.profiles as unknown as { pseudo: string; avatar_url: string | null } | null;
+                return (
+                  <div key={r.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={r.photo_url!} alt={`Recréation par ${profil?.pseudo}`} className="h-full w-full object-cover" />
+                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                      <p className="text-xs font-medium text-white">{profil?.pseudo}</p>
+                      {r.note && <p className="text-[10px] text-white/70 line-clamp-2 mt-0.5">{r.note}</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Liste sans photo */}
+          {recreationsSansPhoto.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {recreationsSansPhoto.map((r) => {
+                const profil = r.profiles as unknown as { pseudo: string; avatar_url: string | null } | null;
+                return (
+                  <div key={r.id} className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1">
+                    <span className="text-xs font-medium text-foreground/70">{profil?.pseudo}</span>
+                    {r.note && <span className="text-xs text-foreground/40">· {r.note.slice(0, 30)}{r.note.length > 30 ? "…" : ""}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Twists */}
       <div className="mt-10 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Twists ({twists?.length ?? 0})</h2>
@@ -186,7 +217,7 @@ export default async function CocktailDetailPage({
       {(!twists || twists.length === 0) && (
         <p className="mt-3 text-sm text-foreground/60">Aucun twist publié. Sois le premier à en proposer un.</p>
       )}
-      <div className="mt-4 flex flex-col gap-3">
+      <div className="mt-4 mb-10 flex flex-col gap-3">
         {twists?.map((t) => (
           <div key={t.id} className="rounded-lg border border-border bg-surface p-4">
             <h3 className="font-semibold">{t.nom}</h3>
