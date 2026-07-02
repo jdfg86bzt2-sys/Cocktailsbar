@@ -20,9 +20,11 @@ export async function enregistrerRecreation(cocktailId: string, formData: FormDa
     const { error: uploadErr } = await supabase.storage
       .from("public-images")
       .upload(chemin, fichier, { upsert: true });
-    if (!uploadErr) {
+    if (uploadErr) {
+      console.error("Upload error:", uploadErr);
+    } else {
       const { data } = supabase.storage.from("public-images").getPublicUrl(chemin);
-      photoUrl = `${data.publicUrl}?t=${Date.now()}`;
+      photoUrl = data.publicUrl;
     }
   }
 

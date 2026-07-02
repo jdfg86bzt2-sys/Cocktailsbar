@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { enregistrerRecreation, supprimerRecreation } from "@/app/cocktails/[id]/actions";
 
 export function BoutonRecreation({
@@ -24,6 +25,7 @@ export function BoutonRecreation({
   const [succes, setSucces] = useState(false);
   const fichierRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   if (!userId) {
     return (
@@ -51,6 +53,7 @@ export function BoutonRecreation({
         setActif(true);
       }
       setSucces(true);
+      router.refresh();
       setTimeout(() => {
         setModalOuvert(false);
         setSucces(false);
@@ -66,6 +69,7 @@ export function BoutonRecreation({
       setApercu(null);
       setNote("");
       setModalOuvert(false);
+      router.refresh();
     });
   }
 
