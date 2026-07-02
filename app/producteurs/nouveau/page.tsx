@@ -91,31 +91,9 @@ export default async function NouveauProducteurPage({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            Photo <span className="text-foreground/50">(optionnel)</span>
-          </label>
-          {/* Photo proposée par l'utilisateur */}
-          {photo_url && (
-            <div className="mb-3">
-              <p className="mb-1.5 text-xs text-foreground/50">Photo suggérée par l&apos;utilisateur :</p>
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo_url} alt="Photo suggérée" className="h-24 w-24 rounded-lg object-cover border border-border" />
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="radio" name="photo_choix" value="suggestion" defaultChecked className="accent-accent" />
-                    Utiliser cette photo
-                  </label>
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="radio" name="photo_choix" value="nouvelle" className="accent-accent" />
-                    Uploader une autre
-                  </label>
-                </div>
-              </div>
-              <input type="hidden" name="photo_url_suggestion" value={photo_url} />
-            </div>
-          )}
-          <input type="file" name="photo" accept="image/*" className="w-full text-sm text-foreground/70 file:mr-3 file:rounded file:border-0 file:bg-surface file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:border-accent" />
+          <label className="mb-1 block text-sm font-medium">Photo *</label>
+          <p className="mb-2 text-xs text-foreground/50">La photo sera visible sur la fiche et dans la liste des producteurs.</p>
+          <input type="file" name="photo" accept="image/*" required className="w-full text-sm text-foreground/70 file:mr-3 file:rounded file:border-0 file:bg-accent/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-accent hover:file:bg-accent/20" />
         </div>
 
         <SubmitButton label="Publier la fiche" labelPending="Publication..." />
