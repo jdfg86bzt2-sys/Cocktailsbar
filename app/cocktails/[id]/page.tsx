@@ -169,40 +169,27 @@ export default async function CocktailDetailPage({
           <h2 className="text-xl font-semibold mb-4">
             La communauté l&apos;a fait <span className="text-foreground/40 text-base font-normal">({nbRecreations})</span>
           </h2>
-
-          {/* Grille photos */}
-          {recreationsAvecPhoto.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mb-5">
-              {recreationsAvecPhoto.map((r) => {
-                const profil = r.profiles as unknown as { pseudo: string; avatar_url: string | null } | null;
-                return (
-                  <div key={r.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={r.photo_url!} alt={`Recréation par ${profil?.pseudo}`} className="h-full w-full object-cover" />
-                    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                      <p className="text-xs font-medium text-white">{profil?.pseudo}</p>
-                      {r.note && <p className="text-[10px] text-white/70 line-clamp-2 mt-0.5">{r.note}</p>}
-                    </div>
+          <div className="flex flex-col gap-3">
+            {recreations?.map((r) => {
+              const profil = r.profiles as unknown as { pseudo: string; avatar_url: string | null } | null;
+              return (
+                <div key={r.id} className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground/80">{profil?.pseudo}</p>
+                    {r.note && <p className="mt-0.5 text-sm text-foreground/60">{r.note}</p>}
                   </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Liste sans photo */}
-          {recreationsSansPhoto.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {recreationsSansPhoto.map((r) => {
-                const profil = r.profiles as unknown as { pseudo: string; avatar_url: string | null } | null;
-                return (
-                  <div key={r.id} className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1">
-                    <span className="text-xs font-medium text-foreground/70">{profil?.pseudo}</span>
-                    {r.note && <span className="text-xs text-foreground/40">· {r.note.slice(0, 30)}{r.note.length > 30 ? "…" : ""}</span>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  {r.photo_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={r.photo_url}
+                      alt={`Photo de ${profil?.pseudo}`}
+                      className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
