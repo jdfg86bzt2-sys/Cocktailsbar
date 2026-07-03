@@ -5,6 +5,7 @@ import { TECHNIQUES } from "@/lib/types";
 import { BadgeSignature } from "@/components/ui/badge-signature";
 import { BoutonRecreation } from "@/components/ui/bouton-recreation";
 import { BoutonFavori } from "@/components/ui/bouton-favori";
+import { ModePreparation } from "@/components/ui/mode-preparation";
 
 export default async function CocktailDetailPage({
   params,
@@ -104,8 +105,15 @@ export default async function CocktailDetailPage({
         </div>
       )}
 
-      {/* Bouton recréation */}
-      <div className="mt-6">
+      {/* Boutons action */}
+      <div className="mt-6 flex flex-wrap gap-3">
+        {etapes && etapes.length > 0 && (
+          <ModePreparation
+            nomCocktail={cocktail.nom}
+            ingredients={ingredients ?? []}
+            etapes={etapes}
+          />
+        )}
         <BoutonRecreation
           cocktailId={id}
           dejaRecrée={dejaRecrée}
