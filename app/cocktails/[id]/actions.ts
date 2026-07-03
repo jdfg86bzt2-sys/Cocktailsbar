@@ -46,16 +46,18 @@ export async function enregistrerRecreation(
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const photoUrlFinale = photoUrl ?? existante?.photo_url ?? null;
+
   if (existante) {
     const { error } = await supabase
       .from("recreations")
-      .update({ note, photo_url: photoUrl ?? existante.photo_url })
+      .update({ note, photo_url: photoUrlFinale })
       .eq("id", existante.id);
     if (error) return { ok: false, erreur: `DB update: ${error.message}` };
   } else {
     const { error } = await supabase
       .from("recreations")
-      .insert({ cocktail_id: cocktailId, user_id: user.id, note, photo_url: photoUrl });
+      .insert({ cocktail_id: cocktailId, user_id: user.id, note, photo_url: photoUrlFinale });
     if (error) return { ok: false, erreur: `DB insert: ${error.message}` };
   }
 
