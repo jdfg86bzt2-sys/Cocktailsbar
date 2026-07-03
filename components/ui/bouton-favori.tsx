@@ -3,6 +3,14 @@
 import { useState, useTransition } from "react";
 import { toggleFavori } from "@/app/cocktails/[id]/favoris-actions";
 
+function IconMarquePage({ filled }: { filled: boolean }) {
+  return (
+    <svg width="16" height="18" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
 export function BoutonFavori({
   cocktailId,
   dejaFavori,
@@ -17,8 +25,13 @@ export function BoutonFavori({
 
   if (!userId) {
     return (
-      <a href="/connexion" className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground/40 hover:border-accent hover:text-accent transition-colors" title="Sauvegarder">
-        🔖
+      <a
+        href="/connexion"
+        title="Connecte-toi pour sauvegarder"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm text-foreground/40 hover:border-accent hover:text-accent transition-colors"
+      >
+        <IconMarquePage filled={false} />
+        <span>Sauvegarder</span>
       </a>
     );
   }
@@ -35,13 +48,14 @@ export function BoutonFavori({
       onClick={handleClick}
       disabled={isPending}
       title={favori ? "Retirer des favoris" : "Sauvegarder"}
-      className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors disabled:opacity-50 ${
+      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
         favori
-          ? "border-amber-400 bg-amber-400/10 text-amber-400 hover:bg-amber-400/20"
-          : "border-border text-foreground/40 hover:border-amber-400 hover:text-amber-400"
+          ? "border-accent bg-accent/10 text-accent hover:bg-accent/20"
+          : "border-border text-foreground/60 hover:border-accent hover:text-accent"
       }`}
     >
-      {favori ? "🔖" : "🔖"}
+      <IconMarquePage filled={favori} />
+      <span>{favori ? "Sauvegardé" : "Sauvegarder"}</span>
     </button>
   );
 }
