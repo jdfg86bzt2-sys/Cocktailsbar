@@ -53,6 +53,11 @@ export async function creerCocktailAction(formData: FormData) {
     redirect(`/cocktails/nouveau?erreur=${encodeURIComponent(`Un cocktail nommé "${nom}" existe déjà.`)}`);
   }
 
+  const etapesCheck = (formData.getAll("etape[]") as string[]).filter((e) => e.trim());
+  if (etapesCheck.length === 0) {
+    redirect(`/cocktails/nouveau?erreur=${encodeURIComponent("Au moins une étape de préparation est requise.")}`);
+  }
+
   const photoUrl = await uploaderPhoto(supabase, formData.get("photo") as File, "cocktails");
   const tagsGout = formData.getAll("tags_gout[]") as string[];
 

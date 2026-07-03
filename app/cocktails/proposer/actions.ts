@@ -47,6 +47,10 @@ export async function proposerCocktailAction(formData: FormData) {
 
   const nom = (formData.get("nom") as string).trim();
 
+  if (etapes.length === 0) {
+    redirect(`/cocktails/proposer?erreur=${encodeURIComponent("Au moins une étape de préparation est requise.")}`);
+  }
+
   // Vérifier si ce cocktail existe déjà en base
   const { data: existant } = await supabase
     .from("cocktails")
