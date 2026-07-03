@@ -25,12 +25,13 @@ export default async function ProfilPage({
 
   const estBarman = profile.role === "barman";
 
-  const [{ data: cocktails }, { data: twists }, { data: recreations }, { count: nbFollowers }, { count: nbFollowing }] = await Promise.all([
+  const [{ data: cocktails }, { data: twists }, { data: recreations }, { count: nbFollowers }, { count: nbFollowing }, { data: favoris }] = await Promise.all([
     supabase.from("cocktails").select("id, nom, photo_url, est_signature, categorie_alcool").eq("createur_id", id).order("created_at", { ascending: false }),
     supabase.from("twists").select("id, nom, photo_url, cocktails(nom)").eq("createur_id", id).order("created_at", { ascending: false }),
     supabase.from("recreations").select("cocktail_id, cocktails(id, nom, photo_url)").eq("user_id", id).order("created_at", { ascending: false }),
     supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", id),
     supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", id),
+    supabase.from("favoris").select("cocktail_id, cocktails(id, nom, photo_url, categorie_alcool)").eq("user_id", id).order("created_at", { ascending: false }),
   ]);
 
   let dejaAbonne = false;
@@ -190,6 +191,35 @@ export default async function ProfilPage({
                 if (!c) return null;
                 return (
                   <Link key={r.cocktail_id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-md bg-surface">
+                    {c.photo_url
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                      : (
+                        <div className="flex h-full w-full items-center justify-center p-2">
+                          <span className="text-center text-xs text-foreground/70">{c.nom}</span>
+                        </div>
+                      )
+                    }
+                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                      <span className="text-xs font-medium text-white line-clamp-2">{c.nom}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Favoris */}
+        {(favoris?.length ?? 0) > 0 && (
+          <div className="mt-8 mb-10">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">🔖 Sauvegardés</h2>
+            <div className="grid grid-cols-3 gap-1 sm:gap-2">
+              {favoris?.map((f) => {
+                const c = f.cocktails as unknown as { id: string; nom: string; photo_url: string | null } | null;
+                if (!c) return null;
+                return (
+                  <Link key={f.cocktail_id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-md bg-surface">
                     {c.photo_url
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform group-hover:scale-105" />

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TECHNIQUES } from "@/lib/types";
 import { BadgeSignature } from "@/components/ui/badge-signature";
 import { BoutonRecreation } from "@/components/ui/bouton-recreation";
+import { BoutonFavori } from "@/components/ui/bouton-favori";
 
 export default async function CocktailDetailPage({
   params,
@@ -28,12 +29,14 @@ export default async function CocktailDetailPage({
     { data: twists },
     { data: recreations },
     { data: liensProducteurs },
+    { data: favoriData },
   ] = await Promise.all([
     supabase.from("cocktail_ingredients").select("ingredient_nom, quantite, unite").eq("cocktail_id", id).order("ordre"),
     supabase.from("cocktail_etapes").select("texte, ordre").eq("cocktail_id", id).order("ordre"),
     supabase.from("twists").select("id, nom, description, created_at, profiles(pseudo)").eq("cocktail_origine_id", id).order("created_at", { ascending: false }),
     supabase.from("recreations").select("id, user_id, photo_url, note, created_at, profiles(pseudo, avatar_url)").eq("cocktail_id", id).order("created_at", { ascending: false }),
     supabase.from("cocktail_producteurs").select("producteurs(id, nom, type)").eq("cocktail_id", id),
+    user ? supabase.from("favoris").select("id").eq("user_id", user.id).eq("cocktail_id", id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
 
   const nbRecreations = recreations?.length ?? 0;
@@ -44,6 +47,7 @@ export default async function CocktailDetailPage({
     if (found) maRecreation = { photo_url: found.photo_url, note: found.note };
   }
   const dejaRecrée = !!maRecreation;
+  const dejaFavori = !!favoriData;
 
   const recreationsAvecPhoto = recreations?.filter((r) => r.photo_url) ?? [];
   const recreationsSansPhoto = recreations?.filter((r) => !r.photo_url) ?? [];
@@ -65,7 +69,10 @@ export default async function CocktailDetailPage({
       {/* En-tête */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h1 className="font-display text-4xl text-accent">{cocktail.nom}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-4xl text-accent">{cocktail.nom}</h1>
+            <BoutonFavori cocktailId={id} dejaFavori={dejaFavori} userId={user?.id ?? null} />
+          </div>
           <div className="mt-2 flex flex-wrap gap-2 text-sm text-foreground/60">
             <span>{cocktail.categorie_alcool}</span>
             <span>·</span>
