@@ -22,17 +22,21 @@ export async function enregistrerRecreation(
     const ext = fichier.name.split(".").pop();
     const chemin = `recreations/${user.id}_${cocktailId}.${ext}`;
 
-    const admin = createAdminClient();
-    const { error: uploadErr } = await admin.storage
-      .from("public-images")
-      .upload(chemin, fichier, { upsert: true });
+    try {
+      const admin = createAdminClient();
+      const { error: uploadErr } = await admin.storage
+        .from("public-images")
+        .upload(chemin, fichier, { upsert: true });
 
-    if (uploadErr) {
-      return { ok: false, erreur: `Upload échoué: ${uploadErr.message}` };
+      if (uploadErr) {
+        return { ok: false, erreur: `Upload échoué: ${uploadErr.message}` };
+      }
+
+      const { data } = admin.storage.from("public-images").getPublicUrl(chemin);
+      photoUrl = data.publicUrl;
+    } catch (e) {
+      return { ok: false, erreur: `Erreur admin: ${e instanceof Error ? e.message : String(e)}` };
     }
-
-    const { data } = admin.storage.from("public-images").getPublicUrl(chemin);
-    photoUrl = data.publicUrl;
   }
 
   const { data: existante } = await supabase

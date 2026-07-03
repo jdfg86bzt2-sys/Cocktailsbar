@@ -49,7 +49,13 @@ export function BoutonRecreation({
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
-      const res = await enregistrerRecreation(cocktailId, formData);
+      let res: { ok: boolean; erreur?: string; photoUrl?: string };
+      try {
+        res = await enregistrerRecreation(cocktailId, formData);
+      } catch (e) {
+        setErreur(`Erreur serveur: ${e instanceof Error ? e.message : "inconnue"}`);
+        return;
+      }
       if (!res.ok) {
         setErreur(res.erreur ?? "Erreur inconnue");
         return;
