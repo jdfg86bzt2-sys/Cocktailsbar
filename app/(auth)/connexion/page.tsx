@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Martini } from "@phosphor-icons/react/dist/ssr";
 import { connexionAction } from "../actions";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -12,15 +13,17 @@ export default async function ConnexionPage({
 
   return (
     <div className="mx-auto flex min-h-[80vh] max-w-md flex-col justify-center px-4 py-10">
-      <h1 className="font-display mb-6 text-4xl text-accent">Connexion</h1>
+      <Martini size={32} weight="thin" className="mb-4 text-accent" />
+      <h1 className="font-display mb-1 text-3xl">Connexion</h1>
+      <p className="mb-6 text-sm text-foreground/50">Retrouve tes recettes et tes recréations.</p>
 
       {erreur && (
-        <p className="mb-4 rounded border border-accent bg-accent/10 px-3 py-2 text-sm">
+        <p className="mb-4 rounded-lg border border-accent bg-accent/10 px-3 py-2 text-sm">
           {erreur}
         </p>
       )}
 
-      <form action={connexionAction} className="flex flex-col gap-4">
+      <form action={connexionAction} className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6">
         <div>
           <label className="mb-1 block text-sm font-medium">Email</label>
           <Input type="email" name="email" required />

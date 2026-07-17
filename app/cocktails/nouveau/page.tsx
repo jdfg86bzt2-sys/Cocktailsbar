@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { creerCocktailAction } from "../actions";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ export default async function NouveauCocktailPage({
         <h1 className="font-display text-3xl text-accent">Accès réservé</h1>
         <p className="mt-4 text-foreground/70">
           Tu veux partager un cocktail ?{" "}
-          <a href="/cocktails/proposer" className="text-accent underline">Envoie une proposition</a> et on la vérifie avant publication.
+          <Link href="/cocktails/proposer" className="text-accent underline">Envoie une proposition</Link> et on la vérifie avant publication.
         </p>
       </div>
     );

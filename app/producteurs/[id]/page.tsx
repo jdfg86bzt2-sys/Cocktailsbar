@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Martini } from "@phosphor-icons/react/dist/ssr";
+import { Martini, ArrowUpRight, CaretLeft } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { TYPES_PRODUCTEUR } from "@/lib/types";
 import { mettreAJourPhotoProducteur } from "./actions";
@@ -113,7 +113,7 @@ export default async function ProducteurDetailPage({
               className="flex-1 text-xs text-foreground/70 file:mr-2 file:rounded file:border-0 file:bg-accent/10 file:px-3 file:py-1 file:text-xs file:font-medium file:text-accent hover:file:bg-accent/20"
             />
             <button type="submit"
-              className="shrink-0 rounded-md bg-accent px-4 py-1.5 text-xs font-semibold text-white hover:opacity-90">
+              className="shrink-0 rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-white hover:opacity-90">
               Enregistrer
             </button>
           </form>
@@ -129,8 +129,8 @@ export default async function ProducteurDetailPage({
         </div>
         {producteur.site_web && (
           <a href={producteur.site_web} target="_blank" rel="noopener noreferrer"
-            className="rounded-md border border-border px-4 py-2 text-sm hover:border-accent">
-            Visiter le site ↗
+            className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm hover:border-accent">
+            Visiter le site <ArrowUpRight size={14} weight="bold" />
           </a>
         )}
       </div>
@@ -149,7 +149,7 @@ export default async function ProducteurDetailPage({
               Utilisé dans {cocktails.length} cocktail{cocktails.length !== 1 ? "s" : ""}
             </h2>
             {cocktails.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border p-6 text-center">
+              <div className="rounded-2xl border border-dashed border-border p-6 text-center">
                 <p className="text-sm text-foreground/50">Aucun cocktail ne référence encore ce producteur.</p>
                 <Link href="/cocktails/proposer" className="mt-2 inline-block text-sm text-accent hover:underline">
                   Proposer un cocktail avec ce producteur →
@@ -159,8 +159,8 @@ export default async function ProducteurDetailPage({
               <div className="grid gap-3 sm:grid-cols-2">
                 {cocktails.map((c) => (
                   <Link key={c.id} href={`/cocktails/${c.id}`}
-                    className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-3 hover:border-accent transition-colors">
-                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-accent/10">
+                    className="group flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 hover:border-accent transition-colors">
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-accent/10">
                       {c.photo_url
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover" />
@@ -184,7 +184,7 @@ export default async function ProducteurDetailPage({
 
         <div className="space-y-6">
           {(producteur.type_produit || ingredientsUniques.length > 0) && (
-            <div className="rounded-xl border border-border bg-surface p-5">
+            <div className="rounded-2xl border border-border bg-surface p-5">
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">Produits</h3>
               {producteur.type_produit && <p className="text-sm font-medium text-accent mb-2">{producteur.type_produit}</p>}
               {ingredientsUniques.length > 0 && (
@@ -198,7 +198,7 @@ export default async function ProducteurDetailPage({
           )}
 
           {(producteur.region || producteur.pays) && (
-            <div className="rounded-xl border border-border bg-surface p-5">
+            <div className="rounded-2xl border border-border bg-surface p-5">
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">Localisation</h3>
               {producteur.ville && <p className="text-sm font-medium">{producteur.ville}</p>}
               {producteur.region && <p className="text-sm text-foreground/70">{producteur.region}</p>}
@@ -213,7 +213,7 @@ export default async function ProducteurDetailPage({
           )}
 
           {ajoutePar && (
-            <div className="rounded-xl border border-border bg-surface p-5">
+            <div className="rounded-2xl border border-border bg-surface p-5">
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">Référencé par</h3>
               <Link href={`/profil/${ajoutePar.id}`} className="text-sm text-accent hover:underline">{ajoutePar.pseudo}</Link>
               <p className="text-xs text-foreground/40 mt-1">le {new Date(producteur.created_at).toLocaleDateString("fr-FR")}</p>
@@ -222,8 +222,8 @@ export default async function ProducteurDetailPage({
         </div>
       </div>
 
-      <Link href="/producteurs" className="mt-10 inline-block text-sm text-foreground/40 hover:text-accent">
-        ← Retour aux producteurs
+      <Link href="/producteurs" className="mt-10 flex w-fit items-center gap-1 text-sm text-foreground/40 hover:text-accent">
+        <CaretLeft size={14} weight="bold" /> Retour aux producteurs
       </Link>
     </div>
   );

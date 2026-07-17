@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { Globe, MapPin } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { TYPES_PRODUCTEUR } from "@/lib/types";
 import { FiltresProducteurs } from "@/components/ui/filtres-producteurs";
@@ -77,13 +78,13 @@ export default async function ProducteursPage({
         </div>
         <div className="flex gap-2">
           {estAdmin && (
-            <Link href="/admin/suggestions" className="rounded-md border border-border px-3 py-2 text-sm hover:border-accent">
+            <Link href="/admin/suggestions" className="rounded-lg border border-border px-3 py-2 text-sm hover:border-accent">
               Suggestions
             </Link>
           )}
           <Link
             href={user ? (estAdmin ? "/producteurs/nouveau" : "/producteurs/suggerer") : "/connexion"}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
           >
             + Suggérer
           </Link>
@@ -97,9 +98,9 @@ export default async function ProducteursPage({
             name="q"
             defaultValue={q}
             placeholder="Rechercher un producteur…"
-            className="flex-1 rounded-full border border-border bg-surface px-5 py-2.5 placeholder:text-foreground/40 focus:border-accent focus:outline-none"
+            className="flex-1 rounded-lg border border-border bg-surface px-5 py-2.5 placeholder:text-foreground/40 focus:border-accent focus:outline-none"
           />
-          <button type="submit" className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+          <button type="submit" className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
             Chercher
           </button>
         </div>
@@ -112,10 +113,10 @@ export default async function ProducteursPage({
 
       {(!producteurs || producteurs.length === 0) && (
         <div className="mt-20 text-center">
-          <p className="text-2xl mb-3">🌍</p>
+          <Globe size={40} weight="thin" className="mx-auto mb-3 text-accent/30" />
           <p className="text-foreground/50">Aucun producteur trouvé.</p>
           {filtreActif
-            ? <a href="/producteurs" className="mt-2 inline-block text-sm text-accent hover:underline">Voir tous →</a>
+            ? <Link href="/producteurs" className="mt-2 inline-block text-sm text-accent hover:underline">Voir tous →</Link>
             : <p className="mt-2 text-sm text-foreground/40">Sois le premier à en suggérer un !</p>
           }
         </div>
@@ -161,7 +162,7 @@ function CarteProducteur({ p }: {
 
   return (
     <Link href={`/producteurs/${p.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface hover:border-accent transition-colors">
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface hover:border-accent transition-colors">
       <div className="relative h-44 w-full overflow-hidden bg-accent/5">
         {p.photo_url
           // eslint-disable-next-line @next/next/no-img-element
@@ -185,7 +186,12 @@ function CarteProducteur({ p }: {
       </div>
       <div className="flex flex-1 flex-col p-4">
         <h2 className="font-semibold leading-tight">{p.nom}</h2>
-        {localisation && <p className="mt-0.5 text-xs text-foreground/50">📍 {localisation}</p>}
+        {localisation && (
+          <p className="mt-0.5 flex items-center gap-1 text-xs text-foreground/50">
+            <MapPin size={12} weight="thin" />
+            {localisation}
+          </p>
+        )}
         {p.type_produit && <p className="mt-1 text-xs text-accent">{p.type_produit}</p>}
         {p.description && <p className="mt-2 line-clamp-2 text-sm text-foreground/60">{p.description}</p>}
       </div>

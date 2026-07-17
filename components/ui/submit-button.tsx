@@ -8,7 +8,7 @@ export function SubmitButton({ label, labelPending }: { label: string; labelPend
     <button
       type="submit"
       disabled={pending}
-      className="rounded-md bg-accent px-5 py-2.5 font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="rounded-lg bg-accent px-5 py-2.5 font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {pending ? (labelPending ?? "Envoi en cours...") : label}
     </button>

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Martini, BookmarkSimple } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { BadgeSignature } from "@/components/ui/badge-signature";
 import { BoutonSuivre } from "@/components/ui/bouton-suivre";
@@ -68,7 +69,7 @@ export default async function ProfilPage({
         </div>
         {estMonProfil && (
           <div className="absolute bottom-3 right-4">
-            <Link href="/profil/modifier" className="rounded-md border border-border bg-background/80 px-3 py-1.5 text-xs font-medium backdrop-blur hover:border-accent">
+            <Link href="/profil/modifier" className="rounded-lg border border-border bg-background/80 px-3 py-1.5 text-xs font-medium backdrop-blur hover:border-accent">
               Modifier le profil
             </Link>
           </div>
@@ -138,20 +139,20 @@ export default async function ProfilPage({
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">Cocktails</h2>
             <div className="grid grid-cols-3 gap-1 sm:gap-2">
               {cocktails?.map((c) => (
-                <Link key={c.id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-md bg-surface">
+                <Link key={c.id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-lg bg-surface">
                   {c.photo_url
                     // eslint-disable-next-line @next/next/no-img-element
                     ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
                     : (
-                      <div className="flex h-full w-full items-center justify-center bg-surface p-2">
-                        <span className="text-center text-xs font-medium text-foreground/70">{c.nom}</span>
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-surface">
+                        <Martini size={20} weight="thin" className="text-accent/30" />
                       </div>
                     )
                   }
                   {c.est_signature && (
                     <span className="absolute right-1 top-1 rounded bg-accent px-1 py-0.5 text-[10px] font-bold text-white">SIG</span>
                   )}
-                  <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-2">
                     <span className="text-xs font-medium text-white line-clamp-2">{c.nom}</span>
                   </div>
                 </Link>
@@ -166,7 +167,7 @@ export default async function ProfilPage({
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">Twists proposés</h2>
             <div className="flex flex-col gap-2">
               {twists?.map((t) => (
-                <div key={t.id} className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
+                <div key={t.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3">
                   {t.photo_url && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={t.photo_url} alt={t.nom} className="h-10 w-10 rounded object-cover shrink-0" />
@@ -190,17 +191,17 @@ export default async function ProfilPage({
                 const c = r.cocktails as unknown as { id: string; nom: string; photo_url: string | null } | null;
                 if (!c) return null;
                 return (
-                  <Link key={r.cocktail_id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-md bg-surface">
+                  <Link key={r.cocktail_id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-lg bg-surface">
                     {c.photo_url
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
                       : (
-                        <div className="flex h-full w-full items-center justify-center p-2">
-                          <span className="text-center text-xs text-foreground/70">{c.nom}</span>
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-surface">
+                          <Martini size={20} weight="thin" className="text-accent/30" />
                         </div>
                       )
                     }
-                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-2">
                       <span className="text-xs font-medium text-white line-clamp-2">{c.nom}</span>
                     </div>
                   </Link>
@@ -213,23 +214,25 @@ export default async function ProfilPage({
         {/* Favoris */}
         {(favoris?.length ?? 0) > 0 && (
           <div className="mt-8 mb-10">
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground/40">🔖 Sauvegardés</h2>
+            <h2 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-foreground/40">
+              <BookmarkSimple size={14} weight="thin" /> Sauvegardés
+            </h2>
             <div className="grid grid-cols-3 gap-1 sm:gap-2">
               {favoris?.map((f) => {
                 const c = f.cocktails as unknown as { id: string; nom: string; photo_url: string | null } | null;
                 if (!c) return null;
                 return (
-                  <Link key={f.cocktail_id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-md bg-surface">
+                  <Link key={f.cocktail_id} href={`/cocktails/${c.id}`} className="group relative aspect-square overflow-hidden rounded-lg bg-surface">
                     {c.photo_url
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
                       : (
-                        <div className="flex h-full w-full items-center justify-center p-2">
-                          <span className="text-center text-xs text-foreground/70">{c.nom}</span>
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-surface">
+                          <Martini size={20} weight="thin" className="text-accent/30" />
                         </div>
                       )
                     }
-                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-2">
                       <span className="text-xs font-medium text-white line-clamp-2">{c.nom}</span>
                     </div>
                   </Link>
