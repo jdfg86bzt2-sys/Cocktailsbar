@@ -3,6 +3,7 @@ import { Martini, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { BadgeSignature } from "@/components/ui/badge-signature";
 import { Reveal } from "@/components/ui/reveal";
+import { CocktailSceneLoader } from "@/components/ui/cocktail-scene-loader";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -92,24 +93,22 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Cocktail du jour */}
-            {cocktailDuJour && (
-              <Link href={`/cocktails/${cocktailDuJour.id}`} className="group relative aspect-[3/4] overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">
-                {cocktailDuJour.photo_url
-                  // eslint-disable-next-line @next/next/no-img-element
-                  ? <img src={cocktailDuJour.photo_url} alt={cocktailDuJour.nom} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/20 via-surface to-surface">
-                      <Martini size={64} weight="thin" className="text-accent/30" />
-                    </div>
-                }
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5">
+            {/* Verre 3D */}
+            <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">
+              <div className="absolute inset-0">
+                <CocktailSceneLoader accent="#e2231a" />
+              </div>
+              {cocktailDuJour && (
+                <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-transparent to-transparent p-5">
                   <p className="text-xs font-semibold uppercase tracking-widest text-white/50 mb-1">Cocktail du jour</p>
                   <p className="font-display text-2xl text-white leading-tight">{cocktailDuJour.nom}</p>
                   <p className="text-sm text-white/60 mt-1">{cocktailDuJour.categorie_alcool}</p>
+                  <Link href={`/cocktails/${cocktailDuJour.id}`} className="pointer-events-auto mt-3 inline-flex w-fit items-center gap-1 text-sm font-semibold text-accent hover:underline">
+                    Voir la recette <CaretRight size={14} weight="bold" />
+                  </Link>
                 </div>
-              </Link>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </section>
