@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Martini } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { TYPES_PRODUCTEUR } from "@/lib/types";
 import { mettreAJourPhotoProducteur } from "./actions";
@@ -73,7 +74,7 @@ export default async function ProducteurDetailPage({
             : (
               <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-surface">
                 <span className="font-display text-8xl font-bold text-accent/10">{producteur.nom.charAt(0)}</span>
-                {estAdmin && <p className="text-sm text-foreground/40">Aucune photo — ajoute-en une ci-dessous</p>}
+                {estAdmin && <p className="text-sm text-foreground/40">Aucune photo, ajoute-en une ci-dessous</p>}
               </div>
             )
           }
@@ -163,7 +164,7 @@ export default async function ProducteurDetailPage({
                       {c.photo_url
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover" />
-                        : <span className="flex h-full w-full items-center justify-center text-xl">🍹</span>
+                        : <span className="flex h-full w-full items-center justify-center"><Martini size={22} weight="thin" className="text-accent/50" /></span>
                       }
                       {c.est_signature && (
                         <span className="absolute right-0 top-0 rounded-bl bg-accent px-1 text-[8px] font-bold text-white">SIG</span>

@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, Permanent_Marker } from "next/font/google";
+import { Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navigation/navbar";
 
-// Police de contenu : nette et très lisible (recettes, descriptions)
-const barlowCondensed = Barlow_Condensed({
-  variable: "--font-barlow-condensed",
+// Police de contenu et de titres : géométrique, nette, sans-serif futuriste
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
-// Police "feutre/graffiti" : réservée aux titres, logo, badges (jamais au texte courant)
-const permanentMarker = Permanent_Marker({
-  variable: "--font-permanent-marker",
+// Police mono : réservée aux chiffres, labels techniques (quantités, stats, étapes)
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -31,10 +31,10 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${barlowCondensed.variable} ${permanentMarker.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <div className="texture-grain" />
+        <div className="texture-grid" />
         <Navbar />
         <main className="flex-1">{children}</main>
       </body>

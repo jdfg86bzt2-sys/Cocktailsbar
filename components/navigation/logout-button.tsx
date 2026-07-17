@@ -17,7 +17,7 @@ export function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="text-foreground/70 hover:text-accent"
+      className="text-foreground/70 transition-colors hover:text-foreground"
     >
       Déconnexion
     </button>

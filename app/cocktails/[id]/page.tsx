@@ -74,12 +74,17 @@ export default async function CocktailDetailPage({
             <h1 className="font-display text-4xl text-accent">{cocktail.nom}</h1>
             <BoutonFavori cocktailId={id} dejaFavori={dejaFavori} userId={user?.id ?? null} />
           </div>
-          <div className="mt-2 flex flex-wrap gap-2 text-sm text-foreground/60">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-foreground/60">
             <span>{cocktail.categorie_alcool}</span>
-            <span>·</span>
+            <span className="h-3 w-px bg-border" />
             <span>{TECHNIQUES.find((t) => t.value === cocktail.technique)?.label}</span>
-            {cocktail.type_verre && (<><span>·</span><span>🥃 {cocktail.type_verre}</span></>)}
-            <span>·</span>
+            {cocktail.type_verre && (
+              <>
+                <span className="h-3 w-px bg-border" />
+                <span>{cocktail.type_verre}</span>
+              </>
+            )}
+            <span className="h-3 w-px bg-border" />
             <span>
               par{" "}
               {createur && (
@@ -133,11 +138,13 @@ export default async function CocktailDetailPage({
 
       {/* Ingrédients */}
       <h2 className="mt-8 text-xl font-semibold">Ingrédients</h2>
-      <ul className="mt-2 space-y-1">
+      <ul className="mt-2 divide-y divide-border">
         {ingredients?.map((ing, i) => (
-          <li key={i} className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            <span>{ing.quantite ? `${ing.quantite}${ing.unite ?? ""} ` : ""}{ing.ingredient_nom}</span>
+          <li key={i} className="flex items-center justify-between py-2.5">
+            <span>{ing.ingredient_nom}</span>
+            {ing.quantite && (
+              <span className="font-mono text-sm text-accent">{ing.quantite}{ing.unite ?? ""}</span>
+            )}
           </li>
         ))}
       </ul>
@@ -149,7 +156,7 @@ export default async function CocktailDetailPage({
           <ol className="mt-2 space-y-3">
             {etapes.map((e, i) => (
               <li key={i} className="flex gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent font-mono text-xs font-bold text-accent-foreground">
                   {i + 1}
                 </span>
                 <span className="pt-0.5 text-foreground/90">{e.texte}</span>
@@ -188,7 +195,7 @@ export default async function CocktailDetailPage({
             {recreations?.map((r) => {
               const profil = r.profiles as unknown as { pseudo: string; avatar_url: string | null } | null;
               return (
-                <div key={r.id} className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3">
+                <div key={r.id} className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground/80">{profil?.pseudo}</p>
                     {r.note && <p className="mt-0.5 text-sm text-foreground/60">{r.note}</p>}
@@ -212,7 +219,7 @@ export default async function CocktailDetailPage({
       <div className="mt-10 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Twists ({twists?.length ?? 0})</h2>
         <Link href={`/cocktails/${id}/twists/nouveau`}
-          className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold hover:border-accent">
+          className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold hover:border-accent">
           + Proposer un twist
         </Link>
       </div>
@@ -221,7 +228,7 @@ export default async function CocktailDetailPage({
       )}
       <div className="mt-4 mb-10 flex flex-col gap-3">
         {twists?.map((t) => (
-          <div key={t.id} className="rounded-lg border border-border bg-surface p-4">
+          <div key={t.id} className="rounded-2xl border border-border bg-surface p-4">
             <h3 className="font-semibold">{t.nom}</h3>
             {t.description && <p className="mt-1 text-sm text-foreground/70">{t.description}</p>}
             <p className="mt-1 text-xs text-foreground/50">

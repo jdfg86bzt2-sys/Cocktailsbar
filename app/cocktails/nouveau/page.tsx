@@ -59,7 +59,7 @@ export default async function NouveauCocktailPage({
 
         <div>
           <label className="mb-1 block text-sm font-medium">
-            L&apos;inspiration — contexte, histoire, pourquoi ce cocktail ?
+            L&apos;inspiration : contexte, histoire, pourquoi ce cocktail ?
           </label>
           <textarea
             name="description"
@@ -90,7 +90,7 @@ export default async function NouveauCocktailPage({
           <label className="mb-1 block text-sm font-medium">Verre utilisé</label>
           <select name="type_verre"
             className="w-full rounded-md border border-border bg-surface px-3 py-2 text-foreground focus:border-accent focus:outline-none">
-            <option value="">— Sélectionner un verre —</option>
+            <option value="">Sélectionner un verre</option>
             {TYPES_VERRE.map((v) => <option key={v} value={v}>{v}</option>)}
           </select>
         </div>

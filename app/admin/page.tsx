@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { Martini, ArrowsClockwise, Factory } from "@phosphor-icons/react/dist/ssr";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -35,7 +36,7 @@ export default async function AdminPage() {
               {nbCocktails}
             </span>
           )}
-          <div className="mb-3 text-3xl">🍹</div>
+          <Martini size={32} weight="thin" className="mb-3 text-accent" />
           <h2 className="text-xl font-semibold group-hover:text-accent">Cocktails</h2>
           <p className="mt-1 text-sm text-foreground/60">
             {(nbCocktails ?? 0) === 0 ? "Aucune proposition" : `${nbCocktails} à valider`}
@@ -48,7 +49,7 @@ export default async function AdminPage() {
               {nbTwists}
             </span>
           )}
-          <div className="mb-3 text-3xl">🔄</div>
+          <ArrowsClockwise size={32} weight="thin" className="mb-3 text-accent" />
           <h2 className="text-xl font-semibold group-hover:text-accent">Twists</h2>
           <p className="mt-1 text-sm text-foreground/60">
             {(nbTwists ?? 0) === 0 ? "Aucune proposition" : `${nbTwists} à valider`}
@@ -61,7 +62,7 @@ export default async function AdminPage() {
               {nbProducteurs}
             </span>
           )}
-          <div className="mb-3 text-3xl">🏭</div>
+          <Factory size={32} weight="thin" className="mb-3 text-accent" />
           <h2 className="text-xl font-semibold group-hover:text-accent">Producteurs</h2>
           <p className="mt-1 text-sm text-foreground/60">
             {(nbProducteurs ?? 0) === 0 ? "Aucune suggestion" : `${nbProducteurs} à valider`}

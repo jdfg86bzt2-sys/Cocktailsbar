@@ -33,7 +33,7 @@ export default async function ProposerCocktailPage({
 
       {succes && (
         <div className="mb-6 rounded border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-400">
-          Proposition envoyée — merci ! On la vérifie dès que possible.
+          Proposition envoyée, merci ! On la vérifie dès que possible.
         </div>
       )}
 
@@ -127,7 +127,7 @@ export default async function ProposerCocktailPage({
               <div>
                 <p className="font-medium">Demander le badge Signature</p>
                 <p className="mt-0.5 text-sm text-foreground/60">
-                  Ce cocktail est une création 100% originale de ta part — pas une adaptation d&apos;une
+                  Ce cocktail est une création 100% originale de ta part, pas une adaptation d&apos;une
                   recette existante. Notre équipe vérifiera l&apos;originalité avant de valider.
                 </p>
               </div>

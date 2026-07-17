@@ -2,43 +2,61 @@
 
 :root {
   /* Palette verrouillée : fond sombre + un seul accent rouge punchy */
-  --background: #0d0d0d;
-  --surface: #171717;
-  --foreground: #f5f1ea;
+  --background: #0a0a0c;
+  --surface: #141417;
+  --surface-elevated: #1a1a1e;
+  --foreground: #e9e9ec;
   --accent: #e2231a;
   --accent-foreground: #ffffff;
-  --border: #2a2a2a;
+  --border: #232327;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
-  --font-display: var(--font-permanent-marker);
-  --font-sans: var(--font-barlow-condensed);
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-space-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-barlow-condensed), sans-serif;
+  font-family: var(--font-space-grotesk), sans-serif;
 }
 
-/* Léger grain pour l'ambiance "rue", appliqué en overlay fixe */
-.texture-grain {
+/*
+  Système de rayons verrouillé (Shape Consistency Lock) :
+  - boutons / inputs / petites tuiles : rounded-lg (8px)
+  - cards / conteneurs de contenu     : rounded-2xl (16px)
+  - badges / pastilles / avatars      : rounded-full (exception documentée)
+  Ne pas introduire d'autre valeur de rayon.
+*/
+
+/* Grille fine en overlay fixe : signature visuelle "précision / blueprint" */
+.texture-grid {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 50;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%);
 }
 
-/* Titre "feutre/graffiti" — réservé aux moments de marque (logo, titres, badges) */
 .font-display {
-  font-family: var(--font-permanent-marker), cursive;
-  letter-spacing: 0.02em;
+  font-family: var(--font-space-grotesk), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: var(--font-space-mono), monospace;
 }

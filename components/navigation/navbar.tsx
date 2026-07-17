@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Bell, Martini } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
 
@@ -36,44 +37,45 @@ export async function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-      <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/" className="font-display text-2xl text-accent">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
+      <nav className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+          <Martini size={22} weight="thin" className="text-accent" />
           Barre de Cocktails
         </Link>
 
-        <div className="flex items-center gap-4 text-sm font-medium">
-          <Link href="/cocktails" className="hover:text-accent">Cocktails</Link>
-          <Link href="/producteurs" className="hover:text-accent">Producteurs</Link>
+        <div className="flex items-center gap-5 text-sm font-medium">
+          <Link href="/cocktails" className="text-foreground/70 transition-colors hover:text-foreground">Cocktails</Link>
+          <Link href="/producteurs" className="text-foreground/70 transition-colors hover:text-foreground">Producteurs</Link>
 
           {isAdmin && (
-            <Link href="/admin" className="relative hover:text-accent text-sm">
+            <Link href="/admin" className="relative text-foreground/70 transition-colors hover:text-foreground">
               Admin
               {nbEnAttente > 0 && (
-                <span className="absolute -right-2 -top-1.5 h-2 w-2 rounded-full bg-accent" />
+                <span className="absolute -right-2 -top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
               )}
             </Link>
           )}
 
           {user ? (
             <>
-              <Link href="/notifications" className="relative hover:text-accent">
-                <span>🔔</span>
+              <Link href="/notifications" className="relative text-foreground/70 transition-colors hover:text-foreground">
+                <Bell size={19} weight="thin" />
                 {nbNotifs > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent font-mono text-[10px] font-bold text-white">
                     {nbNotifs > 9 ? "9+" : nbNotifs}
                   </span>
                 )}
               </Link>
-              <Link href={`/profil/${user.id}`} className="hidden sm:inline hover:text-accent">
+              <Link href={`/profil/${user.id}`} className="hidden text-foreground/70 transition-colors hover:text-foreground sm:inline">
                 {pseudo}
               </Link>
               <LogoutButton />
             </>
           ) : (
             <>
-              <Link href="/connexion" className="hover:text-accent">Connexion</Link>
-              <Link href="/inscription" className="rounded bg-accent px-3 py-1.5 text-accent-foreground hover:opacity-90">
+              <Link href="/connexion" className="text-foreground/70 transition-colors hover:text-foreground">Connexion</Link>
+              <Link href="/inscription" className="rounded-lg bg-accent px-3.5 py-1.5 font-medium text-accent-foreground transition-opacity hover:opacity-90">
                 S&apos;inscrire
               </Link>
             </>

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Martini, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { BadgeSignature } from "@/components/ui/badge-signature";
+import { Reveal } from "@/components/ui/reveal";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -43,7 +45,7 @@ export default async function HomePage() {
           <div className="grid gap-12 sm:grid-cols-2 sm:items-center">
             {/* Texte */}
             <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-accent">Communauté · Recettes · Producteurs</p>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-accent">La communauté du cocktail</p>
               <h1 className="font-display text-5xl leading-tight text-foreground sm:text-6xl">
                 Barre de<br /><span className="text-accent">Cocktails</span>
               </h1>
@@ -97,7 +99,7 @@ export default async function HomePage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   ? <img src={cocktailDuJour.photo_url} alt={cocktailDuJour.nom} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
                   : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/20 via-surface to-surface">
-                      <span className="font-display text-6xl text-accent/20">🍸</span>
+                      <Martini size={64} weight="thin" className="text-accent/30" />
                     </div>
                 }
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
@@ -112,9 +114,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Scroll horizontal — Dernières recettes */}
+      {/* Scroll horizontal : dernières recettes */}
       {(dernierscocktails?.length ?? 0) > 0 && (
-        <section className="border-b border-border py-12">
+        <Reveal as="section" className="border-b border-border py-12">
           <div className="mx-auto max-w-5xl px-4">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="font-display text-2xl">Nouvelles recettes</h2>
@@ -128,15 +130,15 @@ export default async function HomePage() {
                 <Link
                   key={c.id}
                   href={`/cocktails/${c.id}`}
-                  className="group relative shrink-0 overflow-hidden rounded-xl border border-border bg-surface hover:border-accent transition-colors"
+                  className="group relative shrink-0 overflow-hidden rounded-2xl border border-border bg-surface hover:border-accent transition-colors"
                   style={{ width: "200px", scrollSnapAlign: "start" }}
                 >
                   <div className="aspect-[3/4] overflow-hidden">
                     {c.photo_url
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                      : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-surface p-4">
-                          <span className="text-center text-sm font-medium text-foreground/40">{c.nom}</span>
+                      : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-surface">
+                          <Martini size={28} weight="thin" className="text-accent/30" />
                         </div>
                     }
                     {c.est_signature && (
@@ -152,14 +154,14 @@ export default async function HomePage() {
               );
             })}
           </div>
-        </section>
+        </Reveal>
       )}
 
       <div className="mx-auto max-w-5xl px-4 py-12 space-y-16">
 
         {/* Tendances */}
         {(tendancesSorted?.length ?? 0) > 0 && (
-          <section>
+          <Reveal as="section">
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <h2 className="font-display text-2xl">Tendances</h2>
@@ -172,13 +174,13 @@ export default async function HomePage() {
                 const createur = c.profiles as unknown as { pseudo: string } | null;
                 const nbRecrées = (c.recreations as unknown as { count: number }[])?.[0]?.count ?? 0;
                 return (
-                  <Link key={c.id} href={`/cocktails/${c.id}`} className="group flex items-center gap-4 rounded-xl border border-border bg-surface p-3 hover:border-accent transition-colors">
+                  <Link key={c.id} href={`/cocktails/${c.id}`} className="group flex items-center gap-4 rounded-2xl border border-border bg-surface p-3 hover:border-accent transition-colors">
                     <span className="font-display text-3xl text-accent/20 w-8 shrink-0 text-center">{i + 1}</span>
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-accent/10">
                       {c.photo_url
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover" />
-                        : <div className="flex h-full w-full items-center justify-center text-accent/40 text-xl">🍸</div>
+                        : <div className="flex h-full w-full items-center justify-center"><Martini size={24} weight="thin" className="text-accent/50" /></div>
                       }
                     </div>
                     <div className="flex-1 min-w-0">
@@ -195,12 +197,12 @@ export default async function HomePage() {
                 );
               })}
             </div>
-          </section>
+          </Reveal>
         )}
 
         {/* Cocktails signature */}
         {(cocktailsSignature?.length ?? 0) > 0 && (
-          <section className="rounded-2xl border border-accent/20 bg-accent/5 p-6 sm:p-8">
+          <Reveal as="section" className="rounded-2xl border border-accent/20 bg-accent/5 p-6 sm:p-8">
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <h2 className="font-display text-2xl">Cocktails Signature</h2>
@@ -212,13 +214,13 @@ export default async function HomePage() {
               {cocktailsSignature?.map((c) => {
                 const createur = c.profiles as unknown as { pseudo: string; id: string } | null;
                 return (
-                  <Link key={c.id} href={`/cocktails/${c.id}`} className="group relative overflow-hidden rounded-xl bg-background border border-accent/20 hover:border-accent transition-colors">
+                  <Link key={c.id} href={`/cocktails/${c.id}`} className="group relative overflow-hidden rounded-2xl bg-background border border-accent/20 hover:border-accent transition-colors">
                     <div className="aspect-square overflow-hidden">
                       {c.photo_url
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-background">
-                            <span className="text-3xl text-accent/20">🍸</span>
+                            <Martini size={32} weight="thin" className="text-accent/30" />
                           </div>
                       }
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
@@ -231,12 +233,12 @@ export default async function HomePage() {
                 );
               })}
             </div>
-          </section>
+          </Reveal>
         )}
 
         {/* Producteurs */}
         {(derniersProducteurs?.length ?? 0) > 0 && (
-          <section>
+          <Reveal as="section">
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <h2 className="font-display text-2xl">Producteurs à la une</h2>
@@ -246,7 +248,7 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {derniersProducteurs?.map((p) => (
-                <Link key={p.id} href={`/producteurs/${p.id}`} className="group flex flex-col items-center rounded-xl border border-border bg-surface p-5 text-center hover:border-accent transition-colors">
+                <Link key={p.id} href={`/producteurs/${p.id}`} className="group flex flex-col items-center rounded-2xl border border-border bg-surface p-5 text-center hover:border-accent transition-colors">
                   <div className="mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-border bg-background">
                     {p.photo_url
                       // eslint-disable-next-line @next/next/no-img-element
@@ -260,14 +262,14 @@ export default async function HomePage() {
                 </Link>
               ))}
             </div>
-          </section>
+          </Reveal>
         )}
 
         {/* Communauté + CTA */}
-        <section className="grid gap-6 sm:grid-cols-2">
+        <Reveal as="section" className="grid gap-6 sm:grid-cols-2">
           {/* Membres actifs */}
           {(topCreateurs?.length ?? 0) > 0 && (
-            <div className="rounded-xl border border-border bg-surface p-6">
+            <div className="rounded-2xl border border-border bg-surface p-6">
               <h3 className="font-display text-lg mb-4">La communauté</h3>
               <div className="space-y-3">
                 {topCreateurs?.map((c) => (
@@ -283,7 +285,7 @@ export default async function HomePage() {
                       <p className="text-sm font-medium line-clamp-1">{c.pseudo}</p>
                       <p className="text-xs text-foreground/40">{c.role === "barman" ? "Barman" : "Amateur"}</p>
                     </div>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground/20 shrink-0"><polyline points="9 18 15 12 9 6"/></svg>
+                    <CaretRight size={14} weight="bold" className="text-foreground/20 shrink-0" />
                   </Link>
                 ))}
               </div>
@@ -292,7 +294,7 @@ export default async function HomePage() {
 
           {/* CTA */}
           {!user ? (
-            <div className="flex flex-col justify-center rounded-xl border border-accent/30 bg-gradient-to-br from-accent/10 to-surface p-6">
+            <div className="flex flex-col justify-center rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 to-surface p-6">
               <p className="font-display text-2xl text-accent leading-tight">Partage tes recettes.</p>
               <p className="font-display text-2xl text-foreground/60 leading-tight mb-4">Rejoins la communauté.</p>
               <p className="text-sm text-foreground/50 mb-6">Propose tes cocktails, suis les barmans qui t&apos;inspirent, découvre des producteurs du monde entier.</p>
@@ -306,7 +308,7 @@ export default async function HomePage() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col justify-center rounded-xl border border-border bg-surface p-6">
+            <div className="flex flex-col justify-center rounded-2xl border border-border bg-surface p-6">
               <p className="font-display text-xl mb-2">Prêt à créer ?</p>
               <p className="text-sm text-foreground/50 mb-6">Partage ta prochaine recette avec la communauté.</p>
               <Link href="/cocktails/proposer" className="rounded-lg bg-accent py-3 text-center font-semibold text-white hover:opacity-90 transition-opacity">
@@ -314,7 +316,7 @@ export default async function HomePage() {
               </Link>
             </div>
           )}
-        </section>
+        </Reveal>
 
       </div>
     </div>

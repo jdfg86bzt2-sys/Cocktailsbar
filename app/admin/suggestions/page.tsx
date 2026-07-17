@@ -60,7 +60,7 @@ export default async function AdminSuggestionsPage() {
                       <div>
                         <p className="text-lg font-semibold">{s.nom}</p>
                         <p className="text-xs text-foreground/50">
-                          par {mapPseudos[s.utilisateur_id] ?? "inconnu"} —{" "}
+                          par {mapPseudos[s.utilisateur_id] ?? "inconnu"},{" "}
                           {new Date(s.created_at).toLocaleDateString("fr-FR")}
                         </p>
                         {(s.ville || s.pays) && (

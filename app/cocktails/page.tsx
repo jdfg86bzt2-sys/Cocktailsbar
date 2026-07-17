@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { Martini } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { TECHNIQUES } from "@/lib/types";
 import { BadgeSignature } from "@/components/ui/badge-signature";
@@ -66,13 +67,13 @@ export default async function CocktailsPage({
         </div>
         <div className="flex gap-2">
           {estAdmin && (
-            <Link href="/admin/cocktails" className="rounded-md border border-border px-3 py-2 text-sm hover:border-accent">
+            <Link href="/admin/cocktails" className="rounded-lg border border-border px-3 py-2 text-sm hover:border-accent">
               Propositions
             </Link>
           )}
           <Link
             href={user ? (estAdmin ? "/cocktails/nouveau" : "/cocktails/proposer") : "/connexion"}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
           >
             + Proposer
           </Link>
@@ -86,9 +87,9 @@ export default async function CocktailsPage({
             name="q"
             defaultValue={filtres.q}
             placeholder="Rechercher un cocktail ou un ingrédient…"
-            className="flex-1 rounded-full border border-border bg-surface px-5 py-2.5 text-foreground placeholder:text-foreground/40 focus:border-accent focus:outline-none"
+            className="flex-1 rounded-lg border border-border bg-surface px-5 py-2.5 text-foreground placeholder:text-foreground/40 focus:border-accent focus:outline-none"
           />
-          <button type="submit" className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+          <button type="submit" className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
             Chercher
           </button>
         </div>
@@ -115,14 +116,13 @@ export default async function CocktailsPage({
           const techniqueLabel = TECHNIQUES.find((t) => t.value === c.technique)?.label;
           return (
             <Link key={c.id} href={`/cocktails/${c.id}`}
-              className="group relative aspect-[3/4] overflow-hidden rounded-lg bg-surface border border-border hover:border-accent transition-colors">
+              className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-surface border border-border hover:border-accent transition-colors">
               {c.photo_url
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 : (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-3 text-center">
-                    <span className="text-3xl">🍹</span>
-                    <span className="text-xs font-medium text-foreground/60">{c.nom}</span>
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-surface">
+                    <Martini size={32} weight="thin" className="text-accent/40" />
                   </div>
                 )
               }
@@ -131,7 +131,7 @@ export default async function CocktailsPage({
                   <BadgeSignature taille="xs" />
                 </div>
               )}
-              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/10 to-transparent p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/10 to-transparent p-3">
                 <p className="font-semibold text-white text-sm leading-tight line-clamp-2">{c.nom}</p>
                 <p className="text-[10px] text-white/60 mt-0.5">{techniqueLabel} · {createur?.pseudo}</p>
               </div>

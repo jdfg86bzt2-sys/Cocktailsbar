@@ -32,11 +32,11 @@ export default async function ProposerTwistPage({
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="font-display mb-1 text-4xl text-accent">Proposer un twist</h1>
-      <p className="mb-6 text-foreground/60">Variante de « {cocktail.nom} » — soumise à validation avant publication.</p>
+      <p className="mb-6 text-foreground/60">Variante de « {cocktail.nom} », soumise à validation avant publication.</p>
 
       {succes && (
         <div className="mb-6 rounded border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-400">
-          Proposition envoyée — merci ! On la vérifie dès que possible.
+          Proposition envoyée, merci ! On la vérifie dès que possible.
         </div>
       )}
 

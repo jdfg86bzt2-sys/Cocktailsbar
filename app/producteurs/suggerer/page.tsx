@@ -24,7 +24,7 @@ export default async function SuggererProducteurPage({
 
       {succes && (
         <div className="mb-6 rounded border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-400">
-          Suggestion envoyée — merci ! On s&apos;en occupe dès que possible.
+          Suggestion envoyée, merci ! On s&apos;en occupe dès que possible.
         </div>
       )}
 
