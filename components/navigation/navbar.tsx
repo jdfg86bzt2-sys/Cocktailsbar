@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bell, Martini } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
+import { MobileMenu } from "./mobile-menu";
 
 export async function Navbar() {
   const supabase = await createClient();
@@ -38,13 +39,15 @@ export async function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
-      <nav className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
-          <Martini size={22} weight="thin" className="text-accent" />
+      <nav className="relative mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-2 whitespace-nowrap font-display text-base font-bold tracking-tight sm:text-lg">
+          <Martini size={22} weight="thin" className="shrink-0 text-accent" />
           Barre de Cocktails
         </Link>
 
-        <div className="flex items-center gap-5 text-sm font-medium">
+        <MobileMenu isAdmin={isAdmin} nbEnAttente={nbEnAttente} userId={user?.id ?? null} pseudo={pseudo} nbNotifs={nbNotifs} />
+
+        <div className="hidden items-center gap-5 text-sm font-medium sm:flex">
           <Link href="/cocktails" className="text-foreground/70 transition-colors hover:text-foreground">Cocktails</Link>
           <Link href="/producteurs" className="text-foreground/70 transition-colors hover:text-foreground">Producteurs</Link>
 

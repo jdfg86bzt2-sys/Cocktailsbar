@@ -158,7 +158,7 @@ export default async function HomePage() {
 
       <div className="mx-auto max-w-5xl px-4 py-12 space-y-16">
 
-        {/* Tendances */}
+        {/* Tendances — bento asymétrique : 1 tuile vedette + 3 empilées */}
         {(tendancesSorted?.length ?? 0) > 0 && (
           <Reveal as="section">
             <div className="mb-5 flex items-center justify-between">
@@ -168,33 +168,49 @@ export default async function HomePage() {
               </div>
               <Link href="/cocktails" className="text-sm text-accent hover:underline">Voir tout →</Link>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {tendancesSorted?.map((c, i) => {
+            <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
+              {tendancesSorted?.[0] && (() => {
+                const c = tendancesSorted[0];
                 const createur = c.profiles as unknown as { pseudo: string } | null;
                 const nbRecrées = (c.recreations as unknown as { count: number }[])?.[0]?.count ?? 0;
                 return (
-                  <Link key={c.id} href={`/cocktails/${c.id}`} className="group flex items-center gap-4 rounded-2xl border border-border bg-surface p-3 hover:border-accent transition-colors">
-                    <span className="font-display text-3xl text-accent/20 w-8 shrink-0 text-center">{i + 1}</span>
-                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-accent/10">
-                      {c.photo_url
-                        // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover" />
-                        : <div className="flex h-full w-full items-center justify-center"><Martini size={24} weight="thin" className="text-accent/50" /></div>
-                      }
+                  <Link
+                    href={`/cocktails/${c.id}`}
+                    className="group relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/15 via-surface to-surface p-6 hover:border-accent transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <span className="font-mono text-5xl font-bold text-accent/25">01</span>
+                      {nbRecrées > 0 && (
+                        <div className="text-right">
+                          <p className="font-mono text-2xl text-accent">{nbRecrées}</p>
+                          <p className="text-[10px] uppercase tracking-wider text-foreground/40">recréation{nbRecrées > 1 ? "s" : ""}</p>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm line-clamp-1">{c.nom}</p>
-                      <p className="text-xs text-foreground/40 mt-0.5">{createur?.pseudo} · {c.categorie_alcool}</p>
+                    <Martini size={40} weight="thin" className="absolute right-6 top-1/2 -translate-y-1/2 text-accent/10" />
+                    <div>
+                      <p className="font-display text-xl">{c.nom}</p>
+                      <p className="text-sm text-foreground/40 mt-1">{createur?.pseudo} · {c.categorie_alcool}</p>
                     </div>
-                    {nbRecrées > 0 && (
-                      <div className="shrink-0 text-right">
-                        <p className="text-sm font-semibold text-accent">{nbRecrées}</p>
-                        <p className="text-[10px] text-foreground/30">recréation{nbRecrées > 1 ? "s" : ""}</p>
-                      </div>
-                    )}
                   </Link>
                 );
-              })}
+              })()}
+              <div className="flex flex-col gap-3">
+                {tendancesSorted?.slice(1).map((c, i) => {
+                  const createur = c.profiles as unknown as { pseudo: string } | null;
+                  const nbRecrées = (c.recreations as unknown as { count: number }[])?.[0]?.count ?? 0;
+                  return (
+                    <Link key={c.id} href={`/cocktails/${c.id}`} className="group flex flex-1 items-center gap-3 rounded-2xl border border-border bg-surface p-3 hover:border-accent transition-colors">
+                      <span className="font-mono text-lg text-accent/30 w-5 shrink-0">{i + 2}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm line-clamp-1">{c.nom}</p>
+                        <p className="text-xs text-foreground/40 mt-0.5">{createur?.pseudo}</p>
+                      </div>
+                      {nbRecrées > 0 && <span className="font-mono text-xs text-accent shrink-0">{nbRecrées}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           </Reveal>
         )}
@@ -209,29 +225,56 @@ export default async function HomePage() {
               </div>
               <Link href="/cocktails" className="text-sm text-accent hover:underline">Voir tout →</Link>
             </div>
-            <div className="grid gap-4 sm:grid-cols-4">
-              {cocktailsSignature?.map((c) => {
-                const createur = c.profiles as unknown as { pseudo: string; id: string } | null;
-                return (
-                  <Link key={c.id} href={`/cocktails/${c.id}`} className="group relative overflow-hidden rounded-2xl bg-background border border-accent/20 hover:border-accent transition-colors">
-                    <div className="aspect-square overflow-hidden">
-                      {c.photo_url
-                        // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                        : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-background">
-                            <Martini size={32} weight="thin" className="text-accent/30" />
-                          </div>
-                      }
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <p className="font-semibold text-white text-sm line-clamp-1">{c.nom}</p>
-                        {createur && <p className="text-xs text-white/50">{createur.pseudo}</p>}
+
+            {/* Vedette : la plus récente création signature, en pleine largeur */}
+            {cocktailsSignature?.[0] && (() => {
+              const c = cocktailsSignature[0];
+              const createur = c.profiles as unknown as { pseudo: string; id: string } | null;
+              return (
+                <Link
+                  href={`/cocktails/${c.id}`}
+                  className="group relative mb-3 flex items-center justify-between gap-6 overflow-hidden rounded-2xl border border-accent/30 bg-background p-6 hover:border-accent transition-colors sm:p-8"
+                >
+                  {c.photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.photo_url} alt={c.nom} className="absolute inset-0 h-full w-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-105" />
+                  ) : null}
+                  <div className="relative">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-2">La dernière signature</p>
+                    <p className="font-display text-3xl leading-tight">{c.nom}</p>
+                    {createur && <p className="text-sm text-foreground/50 mt-1">par {createur.pseudo}</p>}
+                  </div>
+                  <Martini size={72} weight="thin" className="relative shrink-0 text-accent/20" />
+                </Link>
+              );
+            })()}
+
+            {/* Le reste, en bande */}
+            {(cocktailsSignature?.length ?? 0) > 1 && (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {cocktailsSignature?.slice(1).map((c) => {
+                  const createur = c.profiles as unknown as { pseudo: string; id: string } | null;
+                  return (
+                    <Link key={c.id} href={`/cocktails/${c.id}`} className="group relative overflow-hidden rounded-2xl bg-background border border-accent/20 hover:border-accent transition-colors">
+                      <div className="aspect-[2/1] overflow-hidden">
+                        {c.photo_url
+                          // eslint-disable-next-line @next/next/no-img-element
+                          ? <img src={c.photo_url} alt={c.nom} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/10 to-background">
+                              <Martini size={28} weight="thin" className="text-accent/30" />
+                            </div>
+                        }
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <p className="font-semibold text-white text-sm line-clamp-1">{c.nom}</p>
+                          {createur && <p className="text-xs text-white/50">{createur.pseudo}</p>}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </Reveal>
         )}
 
